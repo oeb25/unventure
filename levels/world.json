@@ -1,0 +1,67 @@
+{
+  "tileset": "assets/tiles.png",
+
+  "id": "world",
+
+  "layers": [{
+    "z": 1,
+
+    "offset": [0, -1],
+
+    "layout": [
+      "ttttttttttttttt",
+      "tttttttt",
+      "ttt",
+      "ttt",
+      "tt",
+      "tt   tttttt",
+      "tt   tttttt",
+      "tt    tttt",
+      "tt    ttt",
+      "ttt   tttt",
+      "tttt     tt"
+    ]
+  },{
+    "z": 0,
+
+    "prerender": false,
+
+    "layout": [
+      "",
+      "       f",
+      "    f f",
+      "",
+      "",
+      "",
+      "          bbb",
+      "         bbbb",
+      "          bb"
+    ]
+  },{
+    "z": -1,
+
+    "layout": [
+      "...............",
+      "........xxxxxxx",
+      "...xxxxxxxxxxxx",
+      "...xxxxxxxxxxxx",
+      "..xxxxxxxxxxxxx",
+      "..xxx......xxxx",
+      "..xxx......xxxx",
+      "..xxxx....xxxxx",
+      "..xxxx...xxxxxx",
+      "...xxx....xxxxx",
+      "....xxxxx..xxxx"
+    ]
+  }],
+
+  "tiles": {
+    ".": 1,
+    "x": 0,
+    "t": 2,
+    "b": 3,
+    "f": 4,
+
+    "default": false
+  }
+}
