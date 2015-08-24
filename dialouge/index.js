@@ -1,6 +1,6 @@
-//import { m, q, a, r } from '../lib/Dialog';
-import { boy, priest, Conversation } from './Persons';
-
+//import { m, q, a, r } from '../lib/Dialogue';
+//import { boy, priest, Conversation } from './Persons';
+import { boy, priest, Dialogue } from '../lib/Dialogue';
 
 // Ignore everything above this!
 
@@ -20,7 +20,6 @@ const storys = {
     ]),
     m(boy, "What? What are you talking about?")
   ]
-*/
 
   'enter church alternative version': new Conversation([
     priest.says("Welcome to my church! What can I do for you?"),
@@ -59,10 +58,31 @@ const storys = {
           )
       ),
     boy.says("What? What are you talking about?")
-  ])
+  ]),
+*/
+
+  'another': new Dialogue(a =>
+    boy.says("Hello there!")
+      .then(priest.says("Why welcome son!"))
+      .then(boy.says("I've sinded bla bla bla"))
+      .then(priest.asks("You have? Oh, thats too bad! What's the matter?"))
+    )
 
 };
 
 // Ignore everything below this
+
+var stories;
+
+stories = {
+  another: Dialogue(function(a) {
+    return boy(says("Hello there!"))
+      .then(priest(says("Why welcome son!")))
+      .then(boy(says("I've sined father!")))
+      .then(priest(asks("You have? Oh, that's too bad! What's the matter?",
+        maybe(boy(awnsers("I've eaten 10 bananas"))),
+        maybe(boy(awnsers("I've stolen fish"))))));
+  })
+};
 
 export default storys;

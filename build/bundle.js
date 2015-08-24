@@ -82,15 +82,35 @@
 
 	var UI = _interopRequireWildcard(_UI);
 
-	var _dialougeIndexJs = __webpack_require__(9);
+	var _Dialogue = __webpack_require__(12);
 
-	var _dialougeIndexJs2 = _interopRequireDefault(_dialougeIndexJs);
+	var Dialogue = _interopRequireWildcard(_Dialogue);
 
-	while (!_dialougeIndexJs2['default']['random'].ended) {
-	  console.log('Next\'d!', _dialougeIndexJs2['default']['random'].type);
+	__webpack_require__(9);
 
-	  _dialougeIndexJs2['default']['random'].next(2);
-	}
+	var _Text = __webpack_require__(10);
+
+	var Text = _interopRequireWildcard(_Text);
+
+	//import story from '../dialouge/index';
+
+	var _dialougeStoriesCoffee = __webpack_require__(11);
+
+	/*while (!story['random'].ended) {
+	  console.log('Next\'d!', story['random'].type);
+
+	  story['random'].next(2);
+	}*/
+
+	var step = function step(story, i) {
+	  if (!story.story) return story;
+
+	  var out = undefined;
+
+	  out = story.story.progress(i);
+
+	  return out;
+	};
 
 	var keyboard = new _tast2['default']().listen();
 
@@ -106,17 +126,20 @@
 	  tileset: void 0,
 	  mouse: { x: 0, y: 0, click: false },
 	  select: 0,
-	  rest: []
+	  rest: [],
+	  story: _dialougeStoriesCoffee.another.progress(),
+	  lastKeyboard: keyboard.save()
 	};
 
-	Promise.all([Level.init(), Level.load('world'), (0, _slicr2['default'])('assets/player.png', { width: 16, height: 16 }), (0, _slicr2['default'])('assets/priest.png', { width: 16, height: 16 }), Level.create('world')]).then(function (_ref) {
-	  var _ref2 = _slicedToArray(_ref, 5);
+	Promise.all([Level.init(), Level.load('world'), (0, _slicr2['default'])('assets/player.png', { width: 16, height: 16 }), (0, _slicr2['default'])('assets/priest.png', { width: 16, height: 16 }), (0, _slicr2['default'])('assets/font2.png', { width: 4, height: 5 }), Level.create('world')]).then(function (_ref) {
+	  var _ref2 = _slicedToArray(_ref, 6);
 
 	  var img = _ref2[0];
 	  var _world = _ref2[1];
 	  var player = _ref2[2];
 	  var priest = _ref2[3];
-	  var world = _ref2[4];
+	  var font = _ref2[4];
+	  var world = _ref2[5];
 
 	  //const level = Level.background(img, world.layout);
 
@@ -133,9 +156,12 @@
 	  });
 
 	  state.tileset = world.tileset;
+	  state.text = Text.init(font);
 
 	  state.player = NPC.create(player);
 	  state.priest = NPC.create(priest);
+
+	  state.priest.offset = 0;
 
 	  state.currentLevel = world;
 
@@ -164,38 +190,20 @@
 
 	  UI.update(s.ui);
 
-	  s.select += keyboard.down(_tast.KEYS.RIGHT) ? 1 : keyboard.down(_tast.KEYS.LEFT) ? -1 : 0;
-	  s.select = s.select % (s.tileset.length * 10);
-
-	  if (keyboard.down(_tast.KEYS.SPACE)) {
-	    var placeX = Math.round(s.player.x / 16) * 16;
-	    var placeY = Math.round(s.player.y / 16) * 16;
-
-	    s.rest.push({
-	      x: placeX,
-	      y: placeY,
-
-	      src: s.tileset[~ ~(s.select * 0.1)]
-	    });
-	    //console.log(~~(s.select * 0.1), placeX, placeY);
-	  }
-
-	  //console.log(Math.round(s.player.x / 16) * 16, Math.floor(((s.mouse.x / s.zoom) - s.cam.x) / 16) * 16);
-
-	  if (keyboard.down(_tast.KEYS.R)) {
-	    (function () {
-	      var placeX = Math.round(s.player.x / 16) * 16;
-	      var placeY = Math.round(s.player.y / 16) * 16;
-
-	      s.rest = s.rest.filter(function (a) {
-	        return a.x !== placeX || a.y !== placeY;
-	      });
-
-	      //console.log(~~(s.select * 0.1), placeX, placeY);
-	    })();
+	  if (s.story.story) {
+	    if (s.story.current.type == 'question') {
+	      if (keyboard.down(49)) {
+	        s.story = step(s.story, 0);
+	      } else if (keyboard.down(50)) {
+	        s.story = step(s.story, 1);
+	      }
+	    } else {
+	      if (keyboard.down(32) && s.lastKeyboard.up(32)) s.story = step(s.story);
+	    }
 	  }
 
 	  s.mouse.click = false;
+	  s.lastKeyboard = keyboard.save();
 
 	  (0, _tegn2['default'])(ctx, {
 	    width: ctx.canvas.width,
@@ -209,18 +217,13 @@
 	      x: s.cam.x,
 	      y: s.cam.y,
 
-	      //scale: [8/16, 8/16],
-
-	      //src: s.currentLevel[0],
-
 	      children: s.currentLevel([].concat(_toConsumableArray(s.rest), [s.player, s.priest, s.follower]))
-	    }]
+	    }, s.story.story ? Dialogue.display(s.text, s.story, s.priest.image[0], s.player.image[4]) : {}]
 	  });
 
-	  //UI.create(s.tileset, ~~(s.select * 0.1))
 	  setTimeout(function () {
 	    return loop(ctx, s);
-	  }, 1000 / 30);
+	  }, 1000 / 40);
 	};
 
 /***/ },
@@ -781,6 +784,7 @@
 	    right: 0,
 	    animate: false,
 	    prev: [],
+	    offset: 0,
 
 	    x: 0, y: 0,
 	    src: img[0]
@@ -793,7 +797,7 @@
 
 	function update(npc, move) {
 	  npc.time += 0.2;
-	  npc.src = npc.animate ? npc.image[Math.floor(npc.time) % 4 + npc.right] : npc.image[npc.right];
+	  npc.src = npc.animate ? npc.image[Math.floor(npc.time) % 4 + npc.right + npc.offset] : npc.image[npc.right + npc.offset];
 
 	  if (move && (move.x || move.y)) {
 	    npc.x += move.x * speed;
@@ -917,47 +921,94 @@
 
 /***/ },
 /* 9 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
-	//import { m, q, a, r } from '../lib/Dialog';
+	/*! http://mths.be/array-from v0.2.0 by @mathias */
 	'use strict';
 
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
+	if (!Array.from) {
+		(function () {
+			'use strict';
+			var defineProperty = (function () {
+				// IE 8 only supports `Object.defineProperty` on DOM elements.
+				try {
+					var object = {};
+					var $defineProperty = Object.defineProperty;
+					var result = $defineProperty(object, object, object) && $defineProperty;
+				} catch (error) {}
+				return result || function put(object, key, descriptor) {
+					object[key] = descriptor.value;
+				};
+			})();
+			var toStr = Object.prototype.toString;
+			var isCallable = function isCallable(fn) {
+				// In a perfect world, the `typeof` check would be sufficient. However,
+				// in Chrome 1–12, `typeof /x/ == 'object'`, and in IE 6–8
+				// `typeof alert == 'object'` and similar for other host objects.
+				return typeof fn == 'function' || toStr.call(fn) == '[object Function]';
+			};
+			var toInteger = function toInteger(value) {
+				var number = Number(value);
+				if (isNaN(number)) {
+					return 0;
+				}
+				if (number == 0 || !isFinite(number)) {
+					return number;
+				}
+				return (number > 0 ? 1 : -1) * Math.floor(Math.abs(number));
+			};
+			var maxSafeInteger = Math.pow(2, 53) - 1;
+			var toLength = function toLength(value) {
+				var len = toInteger(value);
+				return Math.min(Math.max(len, 0), maxSafeInteger);
+			};
+			var from = function from(arrayLike) {
+				var C = this;
+				if (arrayLike == null) {
+					throw new TypeError('`Array.from` requires an array-like object, not `null` or `undefined`');
+				}
+				var items = Object(arrayLike);
+				var mapping = arguments.length > 1;
 
-	var _Persons = __webpack_require__(10);
+				var mapFn, T;
+				if (arguments.length > 1) {
+					mapFn = arguments[1];
+					if (!isCallable(mapFn)) {
+						throw new TypeError('When provided, the second argument to `Array.from` must be a function');
+					}
+					if (arguments.length > 2) {
+						T = arguments[2];
+					}
+				}
 
-	// Ignore everything above this!
-
-	var storys = {
-
-	  /*
-	    'enter church': [
-	      m(priest, "Welcome to my church! What can I do for you?"),
-	      m(boy, "I have sined father :'("),
-	      m(priest, "YOU BASTERD! WHAT HAVE YOU DONE!?!!"),
-	      m(boy, "I.. I.. I have stolen.."),
-	      q(priest, "What have you stolen my child?", boy, [
-	        a("I have stolen fish my lord!", 0),
-	        a("FISH! JUST FISH! HELP ME LORD!", 0)
-	      ],[
-	        r("Fish you say?? Tell me, was it any good?")
-	      ]),
-	      m(boy, "What? What are you talking about?")
-	    ]
-	  */
-
-	  'enter church alternative version': new _Persons.Conversation([_Persons.priest.says("Welcome to my church! What can I do for you?"), _Persons.boy.says("I have sined father :'("), _Persons.priest.says("YOU BASTERD! WHAT HAVE YOU DONE!?!!"), _Persons.boy.says("I... I.. I have stolen.."), _Persons.priest.asks(_Persons.boy, "What have you stolen my child?").awnsers(_Persons.boy.says("I have stolen fish my lord!", 0), _Persons.boy.says("FISH! JUST FISH! HELP ME LORD!", 0), _Persons.boy.says("Two bananas.. I haven't eaten for days!", 1)).responses(_Persons.priest.says("Fish you say?? Tell me, was it any good?"), _Persons.priest.says("Nobody likes bananas anyway :S")), _Persons.boy.says("What? What are you talking about?")]),
-
-	  'random': new _Persons.Conversation([_Persons.priest.asks(_Persons.boy, "What do you want to do?").awnsers(_Persons.boy.says("Go swimming!", 0), _Persons.boy.says("Finish this game!", 1), _Persons.boy.says("Eat two and a half bananas!", 2)).responses(_Persons.priest.says("Aright! Let's head to the sea!"), _Persons.priest.says("Well then... Go to it!"), _Persons.priest.asks(_Persons.boy, "Can I have one??").awnsers(_Persons.boy.says("HELL NO!", 0), _Persons.boy.says("Sure thing! Go ahead and follow!", 1), _Persons.boy.says("Go to hell you bastard!")).responses(_Persons.priest.says("Calm down love, I'm not trying to be rude!"), _Persons.priest.says("Well then, on the road!"))), _Persons.boy.says("What? What are you talking about?")])
-
-	};
-
-	// Ignore everything below this
-
-	exports['default'] = storys;
-	module.exports = exports['default'];
+				var len = toLength(items.length);
+				var A = isCallable(C) ? Object(new C(len)) : new Array(len);
+				var k = 0;
+				var kValue, mappedValue;
+				while (k < len) {
+					kValue = items[k];
+					if (mapFn) {
+						mappedValue = typeof T == 'undefined' ? mapFn(kValue, k) : mapFn.call(T, kValue, k);
+					} else {
+						mappedValue = kValue;
+					}
+					defineProperty(A, k, {
+						'value': mappedValue,
+						'configurable': true,
+						'enumerable': true
+					});
+					++k;
+				}
+				A.length = len;
+				return A;
+			};
+			defineProperty(Array, 'from', {
+				'value': from,
+				'configurable': true,
+				'writable': true
+			});
+		})();
+	}
 
 /***/ },
 /* 10 */
@@ -968,185 +1019,306 @@
 	Object.defineProperty(exports, '__esModule', {
 	  value: true
 	});
+	exports.init = init;
+	var letters = {
+	  a: 0,
+	  b: 1,
+	  c: 2,
+	  d: 3,
+	  e: 4,
+	  f: 5,
+	  g: 6,
+	  h: 7,
+	  i: 8,
+	  j: 9,
+	  k: 10,
+	  l: 11,
+	  m: 12,
+	  n: 13,
+	  o: 14,
+	  p: 15,
+	  q: 16,
+	  r: 17,
+	  s: 18,
+	  t: 19,
+	  u: 20,
+	  v: 21,
+	  w: 22,
+	  x: 23,
+	  y: 24,
+	  z: 25,
+	  '?': 26,
+	  '!': 27,
+	  ':': 28,
+	  '1': 29,
+	  '2': 30,
+	  '3': 31,
+	  '4': 32,
+	  '5': 33,
+	  '6': 34,
+	  '7': 35,
+	  '8': 36,
+	  '9': 37,
+	  '0': 38,
+	  ' ': 39,
+	  '.': 40,
+	  ',': 41,
+	  "'": 42,
+	  '-': 43
+	};
 
-	var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	var limit = 24;
 
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	function init(font) {
+	  return function (x, y) {
+	    var text = arguments.length <= 2 || arguments[2] === undefined ? '' : arguments[2];
 
-	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	    var reduce = 0;
 
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+	    var imgs = text.toLowerCase().split('').map(function (char, i) {
+	      if (char == ' ' && i % 24 == 0) {
+	        reduce += 1;
 
-	var Person = (function () {
-	  function Person(name) {
-	    _classCallCheck(this, Person);
-
-	    this.name = name;
-	  }
-
-	  _createClass(Person, [{
-	    key: 'says',
-	    value: function says(msg, action) {
-	      return new Message(this, msg, action);
-	    }
-	  }, {
-	    key: 'asks',
-	    value: function asks(to, question) {
-	      var _this = this;
+	        return false;
+	      }
 
 	      return {
-	        awnsers: function awnsers() {
-	          for (var _len = arguments.length, _awnsers = Array(_len), _key = 0; _key < _len; _key++) {
-	            _awnsers[_key] = arguments[_key];
-	          }
+	        x: (i - reduce) % 24 * 5,
+	        y: 6 * Math.floor((i - reduce) / 24),
+	        src: font[letters[char]] || font[26]
+	      };
+	    }).filter(function (a) {
+	      return a;
+	    });
 
-	          console.log(_awnsers);
+	    return {
+	      x: x,
+	      y: y,
+
+	      scale: [1, 1],
+
+	      children: imgs
+	    };
+	  };
+	}
+
+	;
+
+/***/ },
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Dialogue, Person, action, asks, awnsers, boy, but, c, gameover, maybe, priest, ref, says, stealFish, stories;
+
+	ref = __webpack_require__(12), says = ref.says, asks = ref.asks, maybe = ref.maybe, but = ref.but, awnsers = ref.awnsers, Dialogue = ref.Dialogue, action = ref.action;
+
+	Person = function(name) {
+	  return function(a) {
+	    a.args.owner = name;
+	    return a;
+	  };
+	};
+
+	boy = Person('Boy');
+
+	priest = Person('Priest');
+
+	c = priest(says("Aww.. Too bad, I know the best place to find fish tho!")).then(boy(says("Are you serious?"))).then(priest(says("Yes!"))).then(boy(says("Can I change my mind? ;)")));
+
+	stealFish = priest(says("FISH! Omg i luv fish! Can i have some!?!?"));
+
+	gameover = action('game over');
+
+	stories = {
+	  another: boy(says("Hello there!")).then(priest(says("Why welcome son!"))).then(boy(says("I've sined father!"))).then(priest(asks("You have? Oh, that's too bad! What's the matter?", maybe("I've eaten 10 bananas").then(priest(asks("That's aright, nobody like bananas any way!", maybe("Ah...okay...then I go back home").then(gameover), maybe("Ikr? Bananas are awful. I stole fish, no kidding now.").then(stealFish)))), maybe("I've stolen fish").then(stealFish)))).then(boy(says("You want to steal fish?"))).then(priest(asks("YES! Will you teach me?", maybe("Well...").then(priest(asks("Come on, please!", maybe("Aright then...").then(priest(says("WUHU! ADVENTURE LIES AHEAD!"))), maybe("What the heck, come along!").then(priest(says("WUHU! ADVENTURE LIES AHEAD!")))))), maybe("No way! Not gonna happen!").then(c)))).then(priest(says("Follow me! I know the greatest place to get the freashest fish!"))).then(priest(says("Follow me! I know the greatest place to get the freashest fish!")))
+	};
+
+	module.exports = stories;
+
+
+/***/ },
+/* 12 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, '__esModule', {
+	  value: true
+	});
+	exports.Dialogue = Dialogue;
+	exports.says = says;
+	exports.maybe = maybe;
+	exports.asks = asks;
+	exports.action = action;
+	exports.display = display;
+
+	function Dialogue(type, args) {
+	  if (type === undefined) type = 'say';
+
+	  var self = {
+	    type: type, args: args,
+	    next: false,
+
+	    then: function then(a) {
+	      var out = Dialogue(self.type, self.args);
+	      var nx = self;
+	      var outNx = out;
+
+	      while (nx.next) {
+	        outNx.next = Dialogue(nx.next.type, nx.next.args);
+	        outNx = outNx.next;
+
+	        nx = nx.next;
+	      }
+
+	      outNx.next = a;
+
+	      return out;
+	    },
+
+	    progress: function progress(i) {
+	      switch (type) {
+	        case 'say':
 	          return {
-	            responses: function responses() {
-	              for (var _len2 = arguments.length, _responses = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-	                _responses[_key2] = arguments[_key2];
-	              }
-
-	              console.log(_responses);
-	              return new Question(_this, question, _awnsers, _responses);
+	            story: self.next,
+	            current: {
+	              owner: args.owner,
+	              type: type,
+	              text: args.msg
 	            }
 	          };
-	        }
-	      };
-	    }
-	  }]);
-
-	  return Person;
-	})();
-
-	var Conversation = (function () {
-	  function Conversation(content) {
-	    _classCallCheck(this, Conversation);
-
-	    this.content = content;
-
-	    this.step = 0;
-
-	    console.log(this);
-	  }
-
-	  _createClass(Conversation, [{
-	    key: 'next',
-	    value: function next() {
-	      var _content$step;
-
-	      this.step += (_content$step = this.content[this.step]).handle.apply(_content$step, arguments) ? 1 : 0;
-	    }
-	  }, {
-	    key: 'display',
-	    value: function display() {
-	      return {
-	        x: 100,
-	        y: 100,
-
-	        width: 100,
-	        height: 100,
-
-	        fill: 'red'
-	      };
-	    }
-	  }, {
-	    key: 'type',
-	    get: function get() {
-	      return this.content[this.step].type;
-	    }
-	  }, {
-	    key: 'ended',
-	    get: function get() {
-	      return this.step == this.content.length;
-	    }
-	  }]);
-
-	  return Conversation;
-	})();
-
-	exports.Conversation = Conversation;
-
-	var Message = (function () {
-	  function Message(owner, msg) {
-	    var action = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
-
-	    _classCallCheck(this, Message);
-
-	    this.owner = owner;
-	    this.msg = msg;
-	    this.action = action;
-
-	    this.type = 'say';
-	  }
-
-	  _createClass(Message, [{
-	    key: 'handle',
-	    value: function handle() {
-	      console.log(this.owner.name + ': ' + this.msg);
-
-	      return typeof this.action == 'function' ? this.action() : this.action;
-	    }
-	  }]);
-
-	  return Message;
-	})();
-
-	var Question = (function (_Message) {
-	  _inherits(Question, _Message);
-
-	  function Question(owner, msg, awnsers, responses) {
-	    _classCallCheck(this, Question);
-
-	    _get(Object.getPrototypeOf(Question.prototype), 'constructor', this).call(this, owner, msg);
-
-	    this.type = 'question';
-	    this.awnsers = awnsers;
-	    this.responses = responses;
-
-	    this.choice = void 0;
-	    this.step = 0;
-
-	    console.log(this);
-	  }
-
-	  _createClass(Question, [{
-	    key: 'handle',
-	    value: function handle(choice) {
-	      switch (this.step) {
-	        case 0:
-	          console.log(this.owner.name + ': ' + this.msg);
-
-	          this.step += 1;
-
-	          return false;
-	        case 1:
-	          this.choice = this.awnsers[choice].handle();
-
-	          this.step += 1;
-
-	          return false;
-	        default:
-	          console.log('plz', this.responses[this.choice]);
-
-	          var a = this.responses[this.choice].handle(1);
-
-	          console.log(a, 'WUP WUP!');
-
-	          if (a) this.step += 1;
-
-	          return a;
+	        case 'question':
+	          return {
+	            story: Dialogue('choice', args.choices).then(self.next),
+	            current: {
+	              owner: args.owner,
+	              type: type,
+	              choices: args.choices,
+	              text: args.question
+	            }
+	          };
+	        case 'choice':
+	          return {
+	            story: args[i].next.then(self.next),
+	            current: {
+	              owner: args.owner,
+	              type: type,
+	              text: args[i].text
+	            }
+	          };
+	        case 'action':
+	          return {
+	            story: false
+	          };
 	      }
+
+	      return self.next;
 	    }
-	  }]);
+	  };
 
-	  return Question;
-	})(Message);
+	  return self;
+	}
 
-	var boy = new Person('Boy');
-	exports.boy = boy;
-	var priest = new Person('Priest');
-	exports.priest = priest;
+	function says(msg) {
+	  //console.log(...args, 'say');
+
+	  return Dialogue('say', { msg: msg });
+	}
+
+	function maybe(text) {
+	  return {
+	    then: function then(next) {
+	      return { next: next, text: text };
+	    }
+	  };
+	}
+
+	function asks() {
+	  for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	    args[_key] = arguments[_key];
+	  }
+
+	  return Dialogue('question', {
+	    question: args[0],
+	    choices: args.slice(1)
+	  });
+	}
+
+	function action(str) {
+	  return Dialogue('action', str);
+	}
+
+	var awnsers = says;
+	exports.awnsers = awnsers;
+
+	var story = says("Hello there!").then(says("sup dude!")).then(asks("Are you cool?", maybe("Nope!").then(says("shit")), maybe("I guess so").then(says("good good!").then(says("fuck you"))))).then(says("End!"));
+
+	function display(text, story, priest, boy) {
+	  var q = story.current.type == 'question';
+
+	  var totalHeight = 0;
+	  var l = 0;
+
+	  var h = function h(amt) {
+	    totalHeight += amt;
+	    return amt;
+	  };
+
+	  var y = 0;
+
+	  var content = {
+	    children: [{
+	      x: story.current.owner === 'Priest' ? -6 : -7.5,
+	      y: -9,
+
+	      scale: [3, 3],
+
+	      src: priest
+	    }, {
+	      x: story.current.owner !== 'Priest' ? 32 : 33.5,
+	      y: -9,
+
+	      scale: [3, 3],
+
+	      src: boy
+	    }, {
+	      width: 128 - 4,
+	      height: h(Math.ceil(story.current.text.length / 24) * 7),
+	      x: 0,
+	      y: 0,
+
+	      fill: 'cornflowerblue'
+	    }, story.current.choices ? {
+	      x: 2,
+	      y: 2,
+
+	      children: story.current.choices.map(function (c, i) {
+	        var height = Math.ceil(c.text.length / 24) * 7;
+
+	        y += height;
+
+	        return {
+	          children: [{
+	            x: -2,
+	            y: y - height + 12,
+
+	            width: 124 + i,
+	            height: h(height),
+
+	            fill: i == 0 ? 'yellow' : 'red'
+	          }, text(0, y - height + 13, c.text)]
+	        };
+	      })
+	    } : {}, text(2, 1, story.current.text)]
+	  };
+
+	  return {
+	    x: 2,
+	    y: 119 - totalHeight,
+
+	    children: [content]
+	  };
+	}
 
 /***/ }
 /******/ ]);

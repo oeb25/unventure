@@ -4,6 +4,7 @@
   "description": "A game",
   "main": "lib/main.js",
   "dependencies": {
+    "array.from": "^0.2.0",
     "slicr": "oeb25/slicr",
     "tast": "oeb25/tast",
     "tegn": "oeb25/tegn"
