@@ -82,19 +82,19 @@
 
 	var UI = _interopRequireWildcard(_UI);
 
-	var _Dialogue = __webpack_require__(12);
+	var _Dialogue = __webpack_require__(9);
 
 	var Dialogue = _interopRequireWildcard(_Dialogue);
 
-	__webpack_require__(9);
+	__webpack_require__(10);
 
-	var _Text = __webpack_require__(10);
+	var _Text = __webpack_require__(11);
 
 	var Text = _interopRequireWildcard(_Text);
 
 	//import story from '../dialouge/index';
 
-	var _dialougeStoriesCoffee = __webpack_require__(11);
+	var _dialougeStoriesCoffee = __webpack_require__(12);
 
 	/*while (!story['random'].ended) {
 	  console.log('Next\'d!', story['random'].type);
@@ -158,8 +158,8 @@
 	  state.tileset = world.tileset;
 	  state.text = Text.init(font);
 
-	  state.player = NPC.create(player);
-	  state.priest = NPC.create(priest);
+	  state.player = NPC.create(player, 64, 16);
+	  state.priest = NPC.create(priest, 64, 16);
 
 	  state.priest.offset = 0;
 
@@ -778,6 +778,9 @@
 	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
 
 	function create(img) {
+	  var x = arguments.length <= 1 || arguments[1] === undefined ? 0 : arguments[1];
+	  var y = arguments.length <= 2 || arguments[2] === undefined ? 0 : arguments[2];
+
 	  return {
 	    image: img,
 	    time: Math.random() * 10,
@@ -786,7 +789,7 @@
 	    prev: [],
 	    offset: 0,
 
-	    x: 0, y: 0,
+	    x: x, y: y,
 	    src: img[0]
 	  };
 	}
@@ -921,223 +924,6 @@
 
 /***/ },
 /* 9 */
-/***/ function(module, exports) {
-
-	/*! http://mths.be/array-from v0.2.0 by @mathias */
-	'use strict';
-
-	if (!Array.from) {
-		(function () {
-			'use strict';
-			var defineProperty = (function () {
-				// IE 8 only supports `Object.defineProperty` on DOM elements.
-				try {
-					var object = {};
-					var $defineProperty = Object.defineProperty;
-					var result = $defineProperty(object, object, object) && $defineProperty;
-				} catch (error) {}
-				return result || function put(object, key, descriptor) {
-					object[key] = descriptor.value;
-				};
-			})();
-			var toStr = Object.prototype.toString;
-			var isCallable = function isCallable(fn) {
-				// In a perfect world, the `typeof` check would be sufficient. However,
-				// in Chrome 1–12, `typeof /x/ == 'object'`, and in IE 6–8
-				// `typeof alert == 'object'` and similar for other host objects.
-				return typeof fn == 'function' || toStr.call(fn) == '[object Function]';
-			};
-			var toInteger = function toInteger(value) {
-				var number = Number(value);
-				if (isNaN(number)) {
-					return 0;
-				}
-				if (number == 0 || !isFinite(number)) {
-					return number;
-				}
-				return (number > 0 ? 1 : -1) * Math.floor(Math.abs(number));
-			};
-			var maxSafeInteger = Math.pow(2, 53) - 1;
-			var toLength = function toLength(value) {
-				var len = toInteger(value);
-				return Math.min(Math.max(len, 0), maxSafeInteger);
-			};
-			var from = function from(arrayLike) {
-				var C = this;
-				if (arrayLike == null) {
-					throw new TypeError('`Array.from` requires an array-like object, not `null` or `undefined`');
-				}
-				var items = Object(arrayLike);
-				var mapping = arguments.length > 1;
-
-				var mapFn, T;
-				if (arguments.length > 1) {
-					mapFn = arguments[1];
-					if (!isCallable(mapFn)) {
-						throw new TypeError('When provided, the second argument to `Array.from` must be a function');
-					}
-					if (arguments.length > 2) {
-						T = arguments[2];
-					}
-				}
-
-				var len = toLength(items.length);
-				var A = isCallable(C) ? Object(new C(len)) : new Array(len);
-				var k = 0;
-				var kValue, mappedValue;
-				while (k < len) {
-					kValue = items[k];
-					if (mapFn) {
-						mappedValue = typeof T == 'undefined' ? mapFn(kValue, k) : mapFn.call(T, kValue, k);
-					} else {
-						mappedValue = kValue;
-					}
-					defineProperty(A, k, {
-						'value': mappedValue,
-						'configurable': true,
-						'enumerable': true
-					});
-					++k;
-				}
-				A.length = len;
-				return A;
-			};
-			defineProperty(Array, 'from', {
-				'value': from,
-				'configurable': true,
-				'writable': true
-			});
-		})();
-	}
-
-/***/ },
-/* 10 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
-	exports.init = init;
-	var letters = {
-	  a: 0,
-	  b: 1,
-	  c: 2,
-	  d: 3,
-	  e: 4,
-	  f: 5,
-	  g: 6,
-	  h: 7,
-	  i: 8,
-	  j: 9,
-	  k: 10,
-	  l: 11,
-	  m: 12,
-	  n: 13,
-	  o: 14,
-	  p: 15,
-	  q: 16,
-	  r: 17,
-	  s: 18,
-	  t: 19,
-	  u: 20,
-	  v: 21,
-	  w: 22,
-	  x: 23,
-	  y: 24,
-	  z: 25,
-	  '?': 26,
-	  '!': 27,
-	  ':': 28,
-	  '1': 29,
-	  '2': 30,
-	  '3': 31,
-	  '4': 32,
-	  '5': 33,
-	  '6': 34,
-	  '7': 35,
-	  '8': 36,
-	  '9': 37,
-	  '0': 38,
-	  ' ': 39,
-	  '.': 40,
-	  ',': 41,
-	  "'": 42,
-	  '-': 43
-	};
-
-	var limit = 24;
-
-	function init(font) {
-	  return function (x, y) {
-	    var text = arguments.length <= 2 || arguments[2] === undefined ? '' : arguments[2];
-
-	    var reduce = 0;
-
-	    var imgs = text.toLowerCase().split('').map(function (char, i) {
-	      if (char == ' ' && i % 24 == 0) {
-	        reduce += 1;
-
-	        return false;
-	      }
-
-	      return {
-	        x: (i - reduce) % 24 * 5,
-	        y: 6 * Math.floor((i - reduce) / 24),
-	        src: font[letters[char]] || font[26]
-	      };
-	    }).filter(function (a) {
-	      return a;
-	    });
-
-	    return {
-	      x: x,
-	      y: y,
-
-	      scale: [1, 1],
-
-	      children: imgs
-	    };
-	  };
-	}
-
-	;
-
-/***/ },
-/* 11 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Dialogue, Person, action, asks, awnsers, boy, but, c, gameover, maybe, priest, ref, says, stealFish, stories;
-
-	ref = __webpack_require__(12), says = ref.says, asks = ref.asks, maybe = ref.maybe, but = ref.but, awnsers = ref.awnsers, Dialogue = ref.Dialogue, action = ref.action;
-
-	Person = function(name) {
-	  return function(a) {
-	    a.args.owner = name;
-	    return a;
-	  };
-	};
-
-	boy = Person('Boy');
-
-	priest = Person('Priest');
-
-	c = priest(says("Aww.. Too bad, I know the best place to find fish tho!")).then(boy(says("Are you serious?"))).then(priest(says("Yes!"))).then(boy(says("Can I change my mind? ;)")));
-
-	stealFish = priest(says("FISH! Omg i luv fish! Can i have some!?!?"));
-
-	gameover = action('game over');
-
-	stories = {
-	  another: boy(says("Hello there!")).then(priest(says("Why welcome son!"))).then(boy(says("I've sined father!"))).then(priest(asks("You have? Oh, that's too bad! What's the matter?", maybe("I've eaten 10 bananas").then(priest(asks("That's aright, nobody like bananas any way!", maybe("Ah...okay...then I go back home").then(gameover), maybe("Ikr? Bananas are awful. I stole fish, no kidding now.").then(stealFish)))), maybe("I've stolen fish").then(stealFish)))).then(boy(says("You want to steal fish?"))).then(priest(asks("YES! Will you teach me?", maybe("Well...").then(priest(asks("Come on, please!", maybe("Aright then...").then(priest(says("WUHU! ADVENTURE LIES AHEAD!"))), maybe("What the heck, come along!").then(priest(says("WUHU! ADVENTURE LIES AHEAD!")))))), maybe("No way! Not gonna happen!").then(c)))).then(priest(says("Follow me! I know the greatest place to get the freashest fish!"))).then(priest(says("Follow me! I know the greatest place to get the freashest fish!")))
-	};
-
-	module.exports = stories;
-
-
-/***/ },
-/* 12 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -1319,6 +1105,223 @@
 	    children: [content]
 	  };
 	}
+
+/***/ },
+/* 10 */
+/***/ function(module, exports) {
+
+	/*! http://mths.be/array-from v0.2.0 by @mathias */
+	'use strict';
+
+	if (!Array.from) {
+		(function () {
+			'use strict';
+			var defineProperty = (function () {
+				// IE 8 only supports `Object.defineProperty` on DOM elements.
+				try {
+					var object = {};
+					var $defineProperty = Object.defineProperty;
+					var result = $defineProperty(object, object, object) && $defineProperty;
+				} catch (error) {}
+				return result || function put(object, key, descriptor) {
+					object[key] = descriptor.value;
+				};
+			})();
+			var toStr = Object.prototype.toString;
+			var isCallable = function isCallable(fn) {
+				// In a perfect world, the `typeof` check would be sufficient. However,
+				// in Chrome 1–12, `typeof /x/ == 'object'`, and in IE 6–8
+				// `typeof alert == 'object'` and similar for other host objects.
+				return typeof fn == 'function' || toStr.call(fn) == '[object Function]';
+			};
+			var toInteger = function toInteger(value) {
+				var number = Number(value);
+				if (isNaN(number)) {
+					return 0;
+				}
+				if (number == 0 || !isFinite(number)) {
+					return number;
+				}
+				return (number > 0 ? 1 : -1) * Math.floor(Math.abs(number));
+			};
+			var maxSafeInteger = Math.pow(2, 53) - 1;
+			var toLength = function toLength(value) {
+				var len = toInteger(value);
+				return Math.min(Math.max(len, 0), maxSafeInteger);
+			};
+			var from = function from(arrayLike) {
+				var C = this;
+				if (arrayLike == null) {
+					throw new TypeError('`Array.from` requires an array-like object, not `null` or `undefined`');
+				}
+				var items = Object(arrayLike);
+				var mapping = arguments.length > 1;
+
+				var mapFn, T;
+				if (arguments.length > 1) {
+					mapFn = arguments[1];
+					if (!isCallable(mapFn)) {
+						throw new TypeError('When provided, the second argument to `Array.from` must be a function');
+					}
+					if (arguments.length > 2) {
+						T = arguments[2];
+					}
+				}
+
+				var len = toLength(items.length);
+				var A = isCallable(C) ? Object(new C(len)) : new Array(len);
+				var k = 0;
+				var kValue, mappedValue;
+				while (k < len) {
+					kValue = items[k];
+					if (mapFn) {
+						mappedValue = typeof T == 'undefined' ? mapFn(kValue, k) : mapFn.call(T, kValue, k);
+					} else {
+						mappedValue = kValue;
+					}
+					defineProperty(A, k, {
+						'value': mappedValue,
+						'configurable': true,
+						'enumerable': true
+					});
+					++k;
+				}
+				A.length = len;
+				return A;
+			};
+			defineProperty(Array, 'from', {
+				'value': from,
+				'configurable': true,
+				'writable': true
+			});
+		})();
+	}
+
+/***/ },
+/* 11 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, '__esModule', {
+	  value: true
+	});
+	exports.init = init;
+	var letters = {
+	  a: 0,
+	  b: 1,
+	  c: 2,
+	  d: 3,
+	  e: 4,
+	  f: 5,
+	  g: 6,
+	  h: 7,
+	  i: 8,
+	  j: 9,
+	  k: 10,
+	  l: 11,
+	  m: 12,
+	  n: 13,
+	  o: 14,
+	  p: 15,
+	  q: 16,
+	  r: 17,
+	  s: 18,
+	  t: 19,
+	  u: 20,
+	  v: 21,
+	  w: 22,
+	  x: 23,
+	  y: 24,
+	  z: 25,
+	  '?': 26,
+	  '!': 27,
+	  ':': 28,
+	  '1': 29,
+	  '2': 30,
+	  '3': 31,
+	  '4': 32,
+	  '5': 33,
+	  '6': 34,
+	  '7': 35,
+	  '8': 36,
+	  '9': 37,
+	  '0': 38,
+	  ' ': 39,
+	  '.': 40,
+	  ',': 41,
+	  "'": 42,
+	  '-': 43
+	};
+
+	var limit = 24;
+
+	function init(font) {
+	  return function (x, y) {
+	    var text = arguments.length <= 2 || arguments[2] === undefined ? '' : arguments[2];
+
+	    var reduce = 0;
+
+	    var imgs = text.toLowerCase().split('').map(function (char, i) {
+	      if (char == ' ' && i % 24 == 0) {
+	        reduce += 1;
+
+	        return false;
+	      }
+
+	      return {
+	        x: (i - reduce) % 24 * 5,
+	        y: 6 * Math.floor((i - reduce) / 24),
+	        src: font[letters[char]] || font[26]
+	      };
+	    }).filter(function (a) {
+	      return a;
+	    });
+
+	    return {
+	      x: x,
+	      y: y,
+
+	      scale: [1, 1],
+
+	      children: imgs
+	    };
+	  };
+	}
+
+	;
+
+/***/ },
+/* 12 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Dialogue, Person, action, asks, awnsers, boy, but, c, gameover, maybe, priest, ref, says, stealFish, stories;
+
+	ref = __webpack_require__(9), says = ref.says, asks = ref.asks, maybe = ref.maybe, but = ref.but, awnsers = ref.awnsers, Dialogue = ref.Dialogue, action = ref.action;
+
+	Person = function(name) {
+	  return function(a) {
+	    a.args.owner = name;
+	    return a;
+	  };
+	};
+
+	boy = Person('Boy');
+
+	priest = Person('Priest');
+
+	c = priest(says("Aww.. Too bad, I know the best place to find fish tho!")).then(boy(says("Are you serious?"))).then(priest(says("Yes!"))).then(boy(says("Can I change my mind? ;)")));
+
+	stealFish = priest(says("FISH! Omg i luv fish! Can i have some!?!?"));
+
+	gameover = action('game over');
+
+	stories = {
+	  another: boy(says("Hello there!")).then(priest(says("Why welcome son!"))).then(boy(says("I've sined father!"))).then(priest(asks("You have? Oh, that's too bad! What's the matter?", maybe("I've eaten 10 bananas").then(priest(asks("That's aright, nobody like bananas any way!", maybe("Ah...okay...then I go back home").then(gameover), maybe("Ikr? Bananas are awful. I stole fish, no kidding now.").then(stealFish)))), maybe("I've stolen fish").then(stealFish)))).then(boy(says("You want to steal fish?"))).then(priest(asks("YES! Will you teach me?", maybe("Well...").then(priest(asks("Come on, please!", maybe("Aright then...").then(priest(says("WUHU! ADVENTURE LIES AHEAD!"))), maybe("What the heck, come along!").then(priest(says("WUHU! ADVENTURE LIES AHEAD!")))))), maybe("No way! Not gonna happen!").then(c)))).then(priest(says("Follow me! I know the greatest place to get the freashest fish!"))).then(priest(says("Follow me! I know the greatest place to get the freashest fish!")))
+	};
+
+	module.exports = stories;
+
 
 /***/ }
 /******/ ]);
