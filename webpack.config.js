@@ -2,7 +2,7 @@ module.exports = {
 	entry: "./lib/main.js",
 
 	output: {
-		path: "./",
+		path: "./build",
 		filename: "bundle.js",
 	},
 
