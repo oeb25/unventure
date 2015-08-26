@@ -42,16 +42,16 @@
 
     "layout": [
       "...............",
-      "........xxxxxxx",
+      "........qxxxxxx",
+      "...qxxxxxxxxxxx",
       "...xxxxxxxxxxxx",
-      "...xxxxxxxxxxxx",
-      "..xxxxxxxxxxxxx",
+      "..qxxxxxxxxxxxx",
       "..xxx......xxxx",
       "..xxx......xxxx",
-      "..xxxx....xxxxx",
-      "..xxxx...xxxxxx",
-      "...xxx....xxxxx",
-      "....xxxxx..xxxx"
+      "..xxxw....qxxxx",
+      "..axxx...qxxxxx",
+      "...axx....axxxx",
+      "....xxxxw..xxxx"
     ]
   }],
 
@@ -61,6 +61,10 @@
     "t": 2,
     "b": 3,
     "f": 4,
+    "q": 6,
+    "w": 8,
+    "a": 7,
+    "s": 9,
 
     "default": false
   }

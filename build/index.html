@@ -3,6 +3,7 @@
   <style media="screen">
     * {
       image-rendering: -moz-crisp-edges;
+      image-rendering: -webkit-optimize-contrast;
       image-rendering: pixelated;
       margin: 0 0;
       padding: 0;
@@ -20,4 +21,11 @@
   </style>
   <link href='http://fonts.googleapis.com/css?family=VT323' rel='stylesheet' type='text/css'>
 </head>
- <script src="bundle.js"></script>
+<body>
+  <script>
+
+    window.global = window;
+
+  </script>
+  <script src="bundle.js"></script>
+</body>
