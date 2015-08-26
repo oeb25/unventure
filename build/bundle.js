@@ -34,7 +34,7 @@
 /******/ 	__webpack_require__.c = installedModules;
 
 /******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "";
+/******/ 	__webpack_require__.p = "/";
 
 /******/ 	// Load entry module and return exports
 /******/ 	return __webpack_require__(0);
@@ -44,1284 +44,607 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
-
-	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
-
-	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
-
-	var _tast = __webpack_require__(1);
-
-	var _tast2 = _interopRequireDefault(_tast);
-
-	var _tegn = __webpack_require__(3);
-
-	var _tegn2 = _interopRequireDefault(_tegn);
-
-	var _slicr = __webpack_require__(4);
-
-	var _slicr2 = _interopRequireDefault(_slicr);
-
-	var _Level = __webpack_require__(5);
-
-	var Level = _interopRequireWildcard(_Level);
-
-	var _NPC = __webpack_require__(6);
-
-	var NPC = _interopRequireWildcard(_NPC);
-
-	var _Camera = __webpack_require__(7);
-
-	var Camera = _interopRequireWildcard(_Camera);
-
-	var _UI = __webpack_require__(8);
-
-	var UI = _interopRequireWildcard(_UI);
-
-	var _Dialogue = __webpack_require__(9);
-
-	var Dialogue = _interopRequireWildcard(_Dialogue);
-
-	__webpack_require__(10);
-
-	var _Text = __webpack_require__(11);
-
-	var Text = _interopRequireWildcard(_Text);
-
-	//import story from '../dialouge/index';
-
-	var _dialougeStoriesCoffee = __webpack_require__(12);
-
-	/*while (!story['random'].ended) {
-	  console.log('Next\'d!', story['random'].type);
-
-	  story['random'].next(2);
-	}*/
-
-	var step = function step(story, i) {
-	  if (!story.story) return story;
-
-	  var out = undefined;
-
-	  out = story.story.progress(i);
-
-	  return out;
-	};
-
-	var keyboard = new _tast2['default']().listen();
-
-	var state = {
-	  x: 0, y: 0,
-	  cam: Camera.create(),
-	  px: 0, py: 0,
-	  bg: void 0,
-	  wasd: { x: 0, y: 0 },
-	  zoom: 10,
-	  player: void 0,
-	  priest: void 0,
-	  tileset: void 0,
-	  mouse: { x: 0, y: 0, click: false },
-	  select: 0,
-	  rest: [],
-	  story: _dialougeStoriesCoffee.another.progress(),
-	  lastKeyboard: keyboard.save()
-	};
-
-	Promise.all([Level.init(), Level.load('world'), (0, _slicr2['default'])('assets/player.png', { width: 16, height: 16 }), (0, _slicr2['default'])('assets/priest.png', { width: 16, height: 16 }), (0, _slicr2['default'])('assets/font2.png', { width: 4, height: 5 }), Level.create('world')]).then(function (_ref) {
-	  var _ref2 = _slicedToArray(_ref, 6);
-
-	  var img = _ref2[0];
-	  var _world = _ref2[1];
-	  var player = _ref2[2];
-	  var priest = _ref2[3];
-	  var font = _ref2[4];
-	  var world = _ref2[5];
-
-	  //const level = Level.background(img, world.layout);
-
-	  var ctx = (0, _tegn.init)(256 / 2, 240 / 2);
-	  ctx.canvas.addEventListener('mousemove', function (e) {
-	    state.mouse.x = e.offsetX;
-	    state.mouse.y = e.offsetY;
-	  });
-	  ctx.canvas.addEventListener('mousedown', function (e) {
-	    state.mouse.click = true;
-	  });
-	  ctx.canvas.addEventListener('mouseup', function (e) {
-	    state.mouse.click = false;
-	  });
-
-	  state.tileset = world.tileset;
-	  state.text = Text.init(font);
-
-	  state.player = NPC.create(player, 64, 16);
-	  state.priest = NPC.create(priest, 64, 16);
-
-	  state.priest.offset = 0;
-
-	  state.currentLevel = world;
-
-	  loop(ctx, state);
-	});
-
-	var limit = 18;
-
-	var loop = function loop(ctx, s) {
-	  s.wasd = {
-	    x: keyboard.down(_tast.KEYS.A) ? -1 : keyboard.down(_tast.KEYS.D) ? 1 : 0,
-	    y: keyboard.down(_tast.KEYS.W) ? -1 : keyboard.down(_tast.KEYS.S) ? 1 : 0
-	  };
-
-	  s.zoom *= keyboard.down(_tast.KEYS.UP) ? 1.01 : keyboard.down(_tast.KEYS.DOWN) ? 0.99 : 1;
-
-	  var wantedX = ctx.canvas.width / 2 - (s.player.x + 8);
-	  var wantedY = ctx.canvas.height / 2 - (s.player.y + 8);
-
-	  Camera.update(s.cam, { x: wantedX, y: wantedY });
-
-	  NPC.update(s.player, s.wasd);
-	  NPC.update(s.priest);
-
-	  NPC.follow(s.player, s.priest);
-
-	  UI.update(s.ui);
-
-	  if (s.story.story) {
-	    if (s.story.current.type == 'question') {
-	      if (keyboard.down(49)) {
-	        s.story = step(s.story, 0);
-	      } else if (keyboard.down(50)) {
-	        s.story = step(s.story, 1);
-	      }
-	    } else {
-	      if (keyboard.down(32) && s.lastKeyboard.up(32)) s.story = step(s.story);
-	    }
-	  }
-
-	  s.mouse.click = false;
-	  s.lastKeyboard = keyboard.save();
-
-	  (0, _tegn2['default'])(ctx, {
-	    width: ctx.canvas.width,
-	    height: ctx.canvas.width,
-
-	    pixelate: true,
-
-	    fill: 'white',
-
-	    children: [{
-	      x: s.cam.x,
-	      y: s.cam.y,
-
-	      children: s.currentLevel([].concat(_toConsumableArray(s.rest), [s.player, s.priest, s.follower]))
-	    }, s.story.story ? Dialogue.display(s.text, s.story, s.priest.image[0], s.player.image[4]) : {}]
-	  });
-
-	  setTimeout(function () {
-	    return loop(ctx, s);
-	  }, 1000 / 40);
-	};
+	eval("'use strict';\n\nvar _toConsumableArray = __webpack_require__(1)['default'];\n\nvar _regeneratorRuntime = __webpack_require__(40)['default'];\n\nvar _interopRequireDefault = __webpack_require__(74)['default'];\n\nvar _interopRequireWildcard = __webpack_require__(75)['default'];\n\nvar _tast = __webpack_require__(76);\n\nvar _tast2 = _interopRequireDefault(_tast);\n\nvar _tegn = __webpack_require__(78);\n\nvar _tegn2 = _interopRequireDefault(_tegn);\n\nvar _slicr = __webpack_require__(79);\n\nvar _slicr2 = _interopRequireDefault(_slicr);\n\nvar _Level = __webpack_require__(80);\n\nvar Level = _interopRequireWildcard(_Level);\n\nvar _NPC = __webpack_require__(81);\n\nvar NPC = _interopRequireWildcard(_NPC);\n\nvar _Camera = __webpack_require__(87);\n\nvar Camera = _interopRequireWildcard(_Camera);\n\nvar _UI = __webpack_require__(88);\n\nvar UI = _interopRequireWildcard(_UI);\n\nvar _DialogueState = __webpack_require__(89);\n\nvar _DialogueState2 = _interopRequireDefault(_DialogueState);\n\nvar _DialogueView = __webpack_require__(93);\n\nvar Dialogue = _interopRequireWildcard(_DialogueView);\n\nvar _Assets = __webpack_require__(97);\n\nvar Assets = _interopRequireWildcard(_Assets);\n\n__webpack_require__(98);\n\n__webpack_require__(99);\n\nvar _dialoguesStoriesCoffee = __webpack_require__(100);\n\nvar step = function step(story, i) {\n  return story.story ? story.story.progress(i) : story;\n};\n\nvar scale = 10;\n\nvar keyboard = new _tast2['default']().listen();\n\nvar initGame = function initGame() {\n  var world, assets, state, ctx;\n  return _regeneratorRuntime.async(function initGame$(context$1$0) {\n    while (1) switch (context$1$0.prev = context$1$0.next) {\n      case 0:\n        context$1$0.next = 2;\n        return _regeneratorRuntime.awrap(Level.create('world'));\n\n      case 2:\n        world = context$1$0.sent;\n        context$1$0.next = 5;\n        return _regeneratorRuntime.awrap(Assets.load('assets/', {\n          boy: 'boy.png',\n          priest: 'priest.png',\n          tiles: 'tiles.png',\n          watermelon: 'watermelon.png',\n          arrow: 'arrow.png'\n        }).then(function (assets) {\n          return {\n            boy: (0, _slicr2['default'])(assets.boy, { width: 16, height: 16 }),\n            priest: (0, _slicr2['default'])(assets.priest, { width: 16, height: 16 }),\n            watermelon: (0, _slicr2['default'])(assets.watermelon, { width: 16, height: 16 }),\n            arrow: assets.arrow,\n            tiles: (0, _slicr2['default'])(assets.tiles, { width: 16, height: 16 })\n          };\n        }));\n\n      case 5:\n        assets = context$1$0.sent;\n        state = {\n          assets: assets,\n          cam: Camera.create(),\n          wasd: { x: 0, y: 0 },\n          mouse: { x: 0, y: 0, click: false },\n          rest: [],\n          select: 0,\n          story: _dialoguesStoriesCoffee.another.progress(),\n          lastKeyboard: keyboard.save(),\n          boy: NPC.create(assets.boy, 64, 16),\n          priest: NPC.create(assets.priest, 64, 16),\n          dialogue: (0, _DialogueState2['default'])(void 0, { type: 'begin', name: 'watermelon' }),\n          followers: [NPC.create(assets.watermelon, 64, 16)],\n          currentLevel: world\n        };\n        ctx = (0, _tegn.init)(170 * scale, 120 * scale);\n\n        ctx.canvas.addEventListener('mousemove', function (e) {\n          state.mouse.x = e.offsetX;\n          state.mouse.y = e.offsetY;\n        });\n        ctx.canvas.addEventListener('mousedown', function (e) {\n          state.mouse.click = true;\n        });\n        ctx.canvas.addEventListener('mouseup', function (e) {\n          state.mouse.click = false;\n        });\n\n        state.priest.offset = 0;\n\n        loop(ctx, state);\n\n      case 13:\n      case 'end':\n        return context$1$0.stop();\n    }\n  }, null, this);\n};\n\nvar loop = function loop(ctx, s) {\n  s.wasd = {\n    x: keyboard.down(_tast.KEYS.A) ? -1 : keyboard.down(_tast.KEYS.D) ? 1 : 0,\n    y: keyboard.down(_tast.KEYS.W) ? -1 : keyboard.down(_tast.KEYS.S) ? 1 : 0\n  };\n\n  Camera.update(s.cam, {\n    x: ctx.canvas.width / scale / 2 - (s.boy.x + 8),\n    y: ctx.canvas.height / scale / 2 - (s.boy.y + 8)\n  });\n\n  if (!s.dialogue.active) {\n    NPC.update(s.boy, s.wasd);\n    NPC.update(s.priest);\n\n    NPC.follow(s.boy, s.priest);\n\n    s.followers.reduce(function (a, b) {\n      NPC.update(b);\n      NPC.follow(a, b);\n\n      return b;\n    }, s.priest);\n  }\n\n  UI.update(s.ui);\n\n  if (keyboard.down(32) && s.lastKeyboard.up(32)) {\n    s.dialogue = (0, _DialogueState2['default'])(s.dialogue, {\n      type: 'progress'\n    });\n  }\n\n  if (keyboard.down(_tast.KEYS.UP)) {\n    s.dialogue = (0, _DialogueState2['default'])(s.dialogue, {\n      type: 'select',\n      n: -1\n    });\n  }\n\n  if (keyboard.down(_tast.KEYS.DOWN)) {\n    s.dialogue = (0, _DialogueState2['default'])(s.dialogue, {\n      type: 'select',\n      n: 1\n    });\n  }\n\n  s.dialogue = (0, _DialogueState2['default'])(s.dialogue, {\n    type: 'tick'\n  });\n\n  s.mouse.click = false;\n  s.lastKeyboard = keyboard.save();\n\n  (0, _tegn2['default'])(ctx, {\n    width: ctx.canvas.width,\n    height: ctx.canvas.width,\n\n    fill: 'white',\n\n    scale: [scale, scale],\n\n    pixelate: true,\n\n    children: [{\n      x: s.cam.x,\n      y: s.cam.y,\n\n      children: s.currentLevel([].concat(_toConsumableArray(s.rest), [s.boy, s.priest], _toConsumableArray(s.followers)))\n    }, s.dialogue.active && Dialogue.view(s.assets, s.dialogue)]\n  });\n\n  setTimeout(function () {\n    return loop(ctx, s);\n  }, 1000 / 40);\n};\n\ninitGame();\n\n/*****************\n ** WEBPACK FOOTER\n ** ./lib/main.js\n ** module id = 0\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./lib/main.js?");
 
 /***/ },
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
-
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
-
-	var _createClass = (function () {
-	  function defineProperties(target, props) {
-	    for (var i = 0; i < props.length; i++) {
-	      var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ('value' in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-	    }
-	  }return function (Constructor, protoProps, staticProps) {
-	    if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-	  };
-	})();
-
-	function _interopRequireWildcard(obj) {
-	  if (obj && obj.__esModule) {
-	    return obj;
-	  } else {
-	    var newObj = {};if (obj != null) {
-	      for (var key in obj) {
-	        if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key];
-	      }
-	    }newObj['default'] = obj;return newObj;
-	  }
-	}
-
-	function _defaults(obj, defaults) {
-	  var keys = Object.getOwnPropertyNames(defaults);for (var i = 0; i < keys.length; i++) {
-	    var key = keys[i];var value = Object.getOwnPropertyDescriptor(defaults, key);if (value && value.configurable && obj[key] === undefined) {
-	      Object.defineProperty(obj, key, value);
-	    }
-	  }return obj;
-	}
-
-	function _classCallCheck(instance, Constructor) {
-	  if (!(instance instanceof Constructor)) {
-	    throw new TypeError('Cannot call a class as a function');
-	  }
-	}
-
-	var Tast = (function () {
-	  function Tast(state) {
-	    _classCallCheck(this, Tast);
-
-	    this.state = state || [];
-	  }
-
-	  _createClass(Tast, [{
-	    key: 'listen',
-	    value: function listen() {
-	      var _this = this;
-
-	      var elm = arguments[0] === undefined ? window : arguments[0];
-
-	      var handleKey = function handleKey(e) {
-	        _this.state[e.which] = e.type === 'keydown';
-	      };
-
-	      elm.addEventListener('keydown', handleKey);
-	      elm.addEventListener('keyup', handleKey);
-
-	      return this;
-	    }
-	  }, {
-	    key: 'down',
-	    value: function down(id) {
-	      if (Array.isArray(id)) {
-	        for (var i = 0; i < id.length; i++) {
-	          if (this.state[id[i]] === true) {
-	            return true;
-	          }
-	        }
-	      }
-
-	      return !!this.state[id];
-	    }
-	  }, {
-	    key: 'up',
-	    value: function up(id) {
-	      return !this.down(id);
-	    }
-	  }, {
-	    key: 'save',
-	    value: function save() {
-	      return new Tast(this.state.slice());
-	    }
-	  }, {
-	    key: 'reset',
-	    value: function reset() {
-	      this.state = [];
-	    }
-	  }]);
-
-	  return Tast;
-	})();
-
-	exports['default'] = Tast;
-	var KEYS = {
-	  UP: 38, DOWN: 40, LEFT: 37, RIGHT: 39,
-
-	  SPACE: 32,
-
-	  A: 65, B: 66, C: 67, D: 68,
-	  E: 69, F: 70, G: 71, H: 72,
-	  I: 73, J: 74, K: 75, L: 76,
-	  M: 77, N: 78, O: 79, P: 80,
-	  Q: 81, R: 82, S: 83, T: 84,
-	  U: 85, V: 86, W: 87, X: 88,
-	  Y: 89, Z: 90
-	};
-
-	exports.KEYS = KEYS;
-
-	var _KeyLayout = __webpack_require__(2);
-
-	_defaults(exports, _interopRequireWildcard(_KeyLayout));
+	eval("\"use strict\";\n\nvar _Array$from = __webpack_require__(2)[\"default\"];\n\nexports[\"default\"] = function (arr) {\n  if (Array.isArray(arr)) {\n    for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];\n\n    return arr2;\n  } else {\n    return _Array$from(arr);\n  }\n};\n\nexports.__esModule = true;\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/helpers/to-consumable-array.js\n ** module id = 1\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/helpers/to-consumable-array.js?");
 
 /***/ },
 /* 2 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.KeyLayout = KeyLayout;
-
-	function KeyLayout(state, options) {
-	  var layout = {
-	    setState: function setState(newState) {
-	      state = newState;
-	    }
-	  };
-
-	  var _loop = function _loop(key) {
-	    Object.defineProperty(layout, key, {
-	      get: function get() {
-	        return state.down(options[key]);
-	      }
-	    });
-	  };
-
-	  for (var key in options) {
-	    _loop(key);
-	  }
-
-	  return layout;
-	}
+	eval("module.exports = { \"default\": __webpack_require__(3), __esModule: true };\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/core-js/array/from.js\n ** module id = 2\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/core-js/array/from.js?");
 
 /***/ },
 /* 3 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
-
-	exports.__esModule = true;
-	exports['default'] = tegn;
-	exports.init = init;
-	var cache = {};
-
-	function tegn(ctx, state) {
-	  var offset = arguments.length <= 2 || arguments[2] === undefined ? [0, 0] : arguments[2];
-	  var scale = arguments.length <= 3 || arguments[3] === undefined ? [1, 1] : arguments[3];
-	  var pixelate = arguments.length <= 4 || arguments[4] === undefined ? false : arguments[4];
-
-	  if (!state) return false;
-
-	  if (Array.isArray(state)) {
-	    state.map(function (child) {
-	      return tegn(ctx, child, offset);
-	    });
-
-	    return state;
-	  }
-
-	  var p = !(state.pixelate !== void 0 ? state.pixelate : pixelate);
-
-	  ctx['imageSmoothingEnabled'] = p;
-	  ctx['mozImageSmoothingEnabled'] = p;
-	  ctx['oImageSmoothingEnabled'] = p;
-	  ctx['webkitImageSmoothingEnabled'] = p;
-	  ctx['msImageSmoothingEnabled'] = p;
-
-	  var s = state.scale || [1, 1];
-
-	  var sx = scale[0] * (s[0] || 1);
-	  var sy = scale[1] * (s[1] || 1);
-
-	  var x = offset[0] + (state.x || 0) * sx;
-	  var y = offset[1] + (state.y || 0) * sy;
-
-	  if (x < ctx.canvas.width && y < ctx.canvas.height) {
-	    if (state.fill) {
-	      if (state.fill === 'clear') {
-	        ctx.clearRect(x, y, state.width * sx || 0, state.height * sy || 0);
-	      } else {
-	        if (ctx.fillStyle !== state.fill) {
-	          ctx.fillStyle = state.color || state.fill;
-	        }
-	        ctx.fillRect(x, y, state.width * sx || 0, state.height * sy || 0);
-	      }
-	    }
-
-	    if (state.stroke) {
-	      ctx.strokeStyle = state.stroke;
-	      ctx.strokeRect(x, y, state.width * sx || 0, state.height * sy || 0);
-	    }
-
-	    if (state.src) {
-	      var img = image(state.src);
-
-	      if (state.width && state.height) {
-	        ctx.drawImage(image(state.src), x, y, state.width * sx, state.height * sy);
-	      } else {
-	        ctx.drawImage(image(state.src), x, y, img.width * sx, img.height * sy);
-	      }
-	    }
-
-	    if (state.text) {
-	      if (state.font) {
-	        ctx.font = state.font;
-	      }
-	      if (state.color) {
-	        ctx.fillStyle = state.color;
-	      }
-
-	      ctx.fillText(state.text, x, y);
-	    }
-	  }
-
-	  if (state.children) {
-	    var len = state.children.length;
-
-	    for (var i = 0; i < len; i++) {
-	      tegn(ctx, state.children[i], [x, y], [sx, sy], !p);
-	    }
-	  }
-
-	  return state;
-	}
-
-	function init(width, height) {
-	  var elm = arguments.length <= 2 || arguments[2] === undefined ? document.body : arguments[2];
-
-	  var canvas = document.createElement('canvas');
-
-	  canvas.width = width;
-	  canvas.height = height;
-
-	  document.body.appendChild(canvas);
-
-	  var ctx = canvas.getContext('2d');
-
-	  ctx.offscreenCanvas = document.createElement('canvas');
-	  ctx.offscreenCtx = ctx.offscreenCanvas.getContext('2d');
-
-	  ctx.offscreenCanvas.width = width;
-	  ctx.offscreenCanvas.height = height;
-
-	  return ctx;
-	}
-
-	function image(src) {
-	  if (typeof src !== 'string') return src;
-
-	  if (cache[src]) return cache[src];
-
-	  var img = document.createElement('img');
-	  img.src = src;
-
-	  return cache[src] = img;
-	}
+	eval("__webpack_require__(4);\n__webpack_require__(27);\nmodule.exports = __webpack_require__(12).Array.from;\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/fn/array/from.js\n ** module id = 3\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/fn/array/from.js?");
 
 /***/ },
 /* 4 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	// slicr :: ((String|Image), (Object|Number)) -> Promise([Image])
-	'use strict';
-
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
-	exports['default'] = slicr;
-	exports.slicrAll = slicrAll;
-
-	function slicr(img, ops) {
-	  if (typeof img === 'string') {
-	    return loadImage(img).then(function (img) {
-	      return slicr(img, ops);
-	    });
-	  }
-
-	  if (!img.width) {
-	    throw new Error('Image is not yet loaded, or has a width of 0');
-	  }
-
-	  if (typeof ops == 'number') {
-	    ops = { slices: ops };
-	  }
-
-	  var width = ops.slices ? Math.floor(img.width / ops.slices) : ops.width || img.width;
-
-	  var height = ops.height || img.height;
-
-	  var hslices = ops.slices || Math.floor(img.width / width);
-	  var vslices = Math.floor(img.height / height);
-
-	  var canvases = new Array(vslices * hslices).join(',').split(',').map(function (_, i) {
-	    var canvas = document.createElement('canvas');
-	    var ctx = canvas.getContext('2d');
-
-	    canvas.width = width;
-	    canvas.height = height;
-
-	    var x = i % hslices * width;
-	    var y = Math.floor(i / hslices) * height;
-
-	    ctx.drawImage(img, x, y, width, height, 0, 0, width, height);
-
-	    return canvas;
-	  });
-
-	  return new Promise(function (resolve) {
-	    resolve(canvases);
-	  });
-	}
-
-	// loadImage :: String -> Promise(Image)
-	function loadImage(url) {
-	  var img = document.createElement('img');
-	  var didResolve = false;
-
-	  return new Promise(function (resolve, reject) {
-	    var notFound = setTimeout(function () {
-	      if (didResolve) return;
-
-	      reject('Error in loading image');
-	    }, 3000);;
-
-	    img.addEventListener('load', function () {
-	      didResolve = true;
-
-	      clearTimeout(notFound);
-
-	      resolve(img);
-	    });
-
-	    img.src = url;
-	  });
-	}
-
-	// slicrAll :: [Object] -> Promise([[Image]])
-
-	function slicrAll(arr) {
-	  return Promise.all(arr.map(function (a) {
-	    return slicr(a.src, a);
-	  }));
-	}
+	eval("'use strict';\nvar $at  = __webpack_require__(5)(true);\n\n// 21.1.3.27 String.prototype[@@iterator]()\n__webpack_require__(8)(String, 'String', function(iterated){\n  this._t = String(iterated); // target\n  this._i = 0;                // next index\n// 21.1.5.2.1 %StringIteratorPrototype%.next()\n}, function(){\n  var O     = this._t\n    , index = this._i\n    , point;\n  if(index >= O.length)return {value: undefined, done: true};\n  point = $at(O, index);\n  this._i += point.length;\n  return {value: point, done: false};\n});\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/es6.string.iterator.js\n ** module id = 4\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/es6.string.iterator.js?");
 
 /***/ },
 /* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
-
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-	var _tegn = __webpack_require__(3);
-
-	var _tegn2 = _interopRequireDefault(_tegn);
-
-	var _slicr = __webpack_require__(4);
-
-	var _slicr2 = _interopRequireDefault(_slicr);
-
-	var getImage = function getImage(img, i) {
-	  switch (i) {
-	    case '.':
-	      return img[1];
-	    default:
-	      return img[0];
-	  }
-	};
-
-	var init = function init() {
-	  return new Promise(function (res) {
-	    var tiles = (0, _slicr2['default'])('assets/tiles.png', { height: 16, width: 16 });
-
-	    tiles.then(res);
-	  });
-	};
-
-	var background = function background(img, tiles, layer) {
-	  var canvas = document.createElement('canvas');
-	  var ctx = canvas.getContext('2d');
-
-	  var cols = 0;
-
-	  var bg = layer.layout.map(function (row, y) {
-	    var col = row.split('');
-
-	    cols = Math.max(col.length, cols);
-
-	    return col.map(function (tile, x) {
-	      return {
-	        x: x * 16,
-	        y: (y - 1) * 16,
-
-	        width: 16,
-	        height: 16,
-
-	        src: img[tiles[tile]]
-	      };
-	    });
-	  }).reduce(function (a, b) {
-	    return a.concat(b);
-	  });
-
-	  var value = false;
-
-	  canvas.width = cols * 16;
-	  canvas.height = layer.layout.length * 16;
-
-	  (0, _tegn2['default'])(ctx, {
-	    children: bg
-	  });
-
-	  return canvas;
-	};
-
-	var getTileset = function getTileset(name) {
-	  return (0, _slicr2['default'])(name, { width: 16, height: 16 });
-	};
-
-	var create = function create(name) {
-	  return load(name).then(function (level) {
-	    return getTileset(level.tileset).then(function (tileset) {
-	      return { level: level, tileset: tileset };
-	    });
-	  }).then(function (_ref) {
-	    var level = _ref.level;
-	    var tileset = _ref.tileset;
-
-	    var layers = level.layers.map(function (layer) {
-	      if (layer.prerender == void 0 || layer.prerender) {
-	        return {
-	          src: background(tileset, level.tiles, layer)
-	        };
-	      } else {
-	        return {
-	          children: layer.layout.map(function (row, y) {
-	            var plzz = row.split('').map(function (tile, x) {
-	              return {
-	                x: x * 16, y: y * 16,
-	                src: tileset[level.tiles[tile]]
-	              };
-	            });
-
-	            if (!plzz.length) return false;
-
-	            return plzz;
-	          }).filter(function (a) {
-	            return a;
-	          }).reduce(function (a, b) {
-	            return a.concat(b);
-	          }).filter(function (a) {
-	            return a.src;
-	          })
-	        };
-	      }
-	    });
-
-	    var out = function out(middle) {
-
-	      return [layers[2], {
-	        children: middle.concat(layers[1].children).sort(function (a, b) {
-	          return a.y - b.y;
-	        })
-	      }, {
-	        y: -5,
-	        children: [layers[0]]
-	      }];
-	    };
-
-	    out.tileset = tileset;
-
-	    return out;
-	  });
-	};
-
-	var fetchLevel = function fetchLevel(name) {
-	  return fetch('levels/' + name + '.json').then(function (res) {
-	    return res.text();
-	  });
-	};
-
-	var load = function load(name) {
-	  return new Promise(function (res) {
-	    var item = 'level-' + name;
-	    var localItem = localStorage.getItem(item);
-
-	    if (false) {
-	      console.log('getting from localStorage');
-
-	      return res(JSON.parse(localItem));
-	    } else {
-	      console.log('fetching!');
-
-	      return res(fetchLevel(name).then(function (lvl) {
-	        localStorage.setItem(item, lvl);
-	        return JSON.parse(lvl);
-	      }));
-	    }
-	  });
-	};
-
-	exports.init = init;
-	exports.background = background;
-	exports.load = load;
-	exports.create = create;
+	eval("// true  -> String#at\n// false -> String#codePointAt\nvar toInteger = __webpack_require__(6)\n  , defined   = __webpack_require__(7);\nmodule.exports = function(TO_STRING){\n  return function(that, pos){\n    var s = String(defined(that))\n      , i = toInteger(pos)\n      , l = s.length\n      , a, b;\n    if(i < 0 || i >= l)return TO_STRING ? '' : undefined;\n    a = s.charCodeAt(i);\n    return a < 0xd800 || a > 0xdbff || i + 1 === l\n      || (b = s.charCodeAt(i + 1)) < 0xdc00 || b > 0xdfff\n        ? TO_STRING ? s.charAt(i) : a\n        : TO_STRING ? s.slice(i, i + 2) : (a - 0xd800 << 10) + (b - 0xdc00) + 0x10000;\n  };\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.string-at.js\n ** module id = 5\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.string-at.js?");
 
 /***/ },
 /* 6 */
 /***/ function(module, exports) {
 
-	"use strict";
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-	exports.create = create;
-	exports.update = update;
-	exports.follow = follow;
-
-	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
-
-	function create(img) {
-	  var x = arguments.length <= 1 || arguments[1] === undefined ? 0 : arguments[1];
-	  var y = arguments.length <= 2 || arguments[2] === undefined ? 0 : arguments[2];
-
-	  return {
-	    image: img,
-	    time: Math.random() * 10,
-	    right: 0,
-	    animate: false,
-	    prev: [],
-	    offset: 0,
-
-	    x: x, y: y,
-	    src: img[0]
-	  };
-	}
-
-	;
-
-	var speed = 1;
-
-	function update(npc, move) {
-	  npc.time += 0.2;
-	  npc.src = npc.animate ? npc.image[Math.floor(npc.time) % 4 + npc.right + npc.offset] : npc.image[npc.right + npc.offset];
-
-	  if (move && (move.x || move.y)) {
-	    npc.x += move.x * speed;
-	    npc.y += move.y * speed;
-
-	    npc.right = move.x == -1 ? 4 : move.x == 1 ? 0 : npc.right;
-
-	    npc.animate = true;
-	    npc.prev = [_extends({}, npc)].concat(_toConsumableArray(npc.prev)).slice(0, limit + 1);
-	  } else {
-	    npc.animate = false;
-	  }
-	}
-
-	var limit = 10;
-
-	function follow(a, b) {
-	  b.animate = a.animate;
-
-	  if (a.prev[limit]) {
-	    var pp = a.prev[limit];
-
-	    if (Math.round(pp.x * 2) == Math.round(b.x * 2) && Math.round(pp.y * 2) == Math.round(b.y * 2)) {
-	      return;
-	    }
-
-	    b.x = pp.x;
-	    b.y = pp.y - .1;
-	    b.right = pp.right;
-
-	    b.prev = [_extends({}, b)].concat(_toConsumableArray(b.prev)).slice(0, limit + 1);
-	  }
-	}
+	eval("// 7.1.4 ToInteger\nvar ceil  = Math.ceil\n  , floor = Math.floor;\nmodule.exports = function(it){\n  return isNaN(it = +it) ? 0 : (it > 0 ? floor : ceil)(it);\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.to-integer.js\n ** module id = 6\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.to-integer.js?");
 
 /***/ },
 /* 7 */
 /***/ function(module, exports) {
 
-	"use strict";
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.create = create;
-	exports.update = update;
-
-	function create() {
-	  return {
-	    x: 0,
-	    y: 0
-	  };
-	}
-
-	function update(cam, dest) {
-	  var amt = 1;
-
-	  var moveX = Math.min(0, ~ ~dest.x) - cam.x;
-	  var moveY = Math.min(0, ~ ~dest.y) - cam.y;
-
-	  if (Math.abs(moveX) > 4) {
-	    if (moveX > 0) cam.x += 1; //moveX * amt;
-	    else cam.x -= 1;
-	  }
-
-	  if (Math.abs(moveY) > 4) {
-	    if (moveY > 0) cam.y += 1; //moveX * amt;
-	    else cam.y -= 1;
-	  }
-
-	  cam.x = Math.min(0, cam.x);
-	  cam.y = Math.min(0, cam.y);
-	}
+	eval("// 7.2.1 RequireObjectCoercible(argument)\nmodule.exports = function(it){\n  if(it == undefined)throw TypeError(\"Can't call method on  \" + it);\n  return it;\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.defined.js\n ** module id = 7\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.defined.js?");
 
 /***/ },
 /* 8 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
-
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
-	exports.create = create;
-	exports.update = update;
-
-	function create(tiles, select) {
-	  var options = {
-	    x: 1,
-	    y: 1,
-
-	    //scale: [5, 5],
-
-	    children: tiles.map(function (tile, i) {
-	      return {
-	        x: i * (16 + 2),
-	        src: tile
-	      };
-	    })
-	  };
-
-	  return {
-	    tiles: void 0,
-
-	    x: 10,
-	    y: 10,
-
-	    children: [{
-	      children: [{
-	        x: 90 * select,
-	        y: 0,
-
-	        width: 90 / 5, height: 90 / 5,
-
-	        fill: '#3ee'
-	      }, options]
-	    }]
-	  };
-	}
-
-	function update(ui) {}
+	eval("'use strict';\nvar LIBRARY         = __webpack_require__(9)\n  , $def            = __webpack_require__(10)\n  , $redef          = __webpack_require__(13)\n  , hide            = __webpack_require__(14)\n  , has             = __webpack_require__(19)\n  , SYMBOL_ITERATOR = __webpack_require__(20)('iterator')\n  , Iterators       = __webpack_require__(23)\n  , FF_ITERATOR     = '@@iterator'\n  , KEYS            = 'keys'\n  , VALUES          = 'values';\nvar returnThis = function(){ return this; };\nmodule.exports = function(Base, NAME, Constructor, next, DEFAULT, IS_SET, FORCE){\n  __webpack_require__(24)(Constructor, NAME, next);\n  var createMethod = function(kind){\n    switch(kind){\n      case KEYS: return function keys(){ return new Constructor(this, kind); };\n      case VALUES: return function values(){ return new Constructor(this, kind); };\n    } return function entries(){ return new Constructor(this, kind); };\n  };\n  var TAG      = NAME + ' Iterator'\n    , proto    = Base.prototype\n    , _native  = proto[SYMBOL_ITERATOR] || proto[FF_ITERATOR] || DEFAULT && proto[DEFAULT]\n    , _default = _native || createMethod(DEFAULT)\n    , methods, key;\n  // Fix native\n  if(_native){\n    var IteratorPrototype = __webpack_require__(15).getProto(_default.call(new Base));\n    // Set @@toStringTag to native iterators\n    __webpack_require__(25)(IteratorPrototype, TAG, true);\n    // FF fix\n    if(!LIBRARY && has(proto, FF_ITERATOR))hide(IteratorPrototype, SYMBOL_ITERATOR, returnThis);\n  }\n  // Define iterator\n  if(!LIBRARY || FORCE)hide(proto, SYMBOL_ITERATOR, _default);\n  // Plug for library\n  Iterators[NAME] = _default;\n  Iterators[TAG]  = returnThis;\n  if(DEFAULT){\n    methods = {\n      keys:    IS_SET            ? _default : createMethod(KEYS),\n      values:  DEFAULT == VALUES ? _default : createMethod(VALUES),\n      entries: DEFAULT != VALUES ? _default : createMethod('entries')\n    };\n    if(FORCE)for(key in methods){\n      if(!(key in proto))$redef(proto, key, methods[key]);\n    } else $def($def.P + $def.F * __webpack_require__(26), NAME, methods);\n  }\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.iter-define.js\n ** module id = 8\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.iter-define.js?");
 
 /***/ },
 /* 9 */
 /***/ function(module, exports) {
 
-	'use strict';
-
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
-	exports.Dialogue = Dialogue;
-	exports.says = says;
-	exports.maybe = maybe;
-	exports.asks = asks;
-	exports.action = action;
-	exports.display = display;
-
-	function Dialogue(type, args) {
-	  if (type === undefined) type = 'say';
-
-	  var self = {
-	    type: type, args: args,
-	    next: false,
-
-	    then: function then(a) {
-	      var out = Dialogue(self.type, self.args);
-	      var nx = self;
-	      var outNx = out;
-
-	      while (nx.next) {
-	        outNx.next = Dialogue(nx.next.type, nx.next.args);
-	        outNx = outNx.next;
-
-	        nx = nx.next;
-	      }
-
-	      outNx.next = a;
-
-	      return out;
-	    },
-
-	    progress: function progress(i) {
-	      switch (type) {
-	        case 'say':
-	          return {
-	            story: self.next,
-	            current: {
-	              owner: args.owner,
-	              type: type,
-	              text: args.msg
-	            }
-	          };
-	        case 'question':
-	          return {
-	            story: Dialogue('choice', args.choices).then(self.next),
-	            current: {
-	              owner: args.owner,
-	              type: type,
-	              choices: args.choices,
-	              text: args.question
-	            }
-	          };
-	        case 'choice':
-	          return {
-	            story: args[i].next.then(self.next),
-	            current: {
-	              owner: args.owner,
-	              type: type,
-	              text: args[i].text
-	            }
-	          };
-	        case 'action':
-	          return {
-	            story: false
-	          };
-	      }
-
-	      return self.next;
-	    }
-	  };
-
-	  return self;
-	}
-
-	function says(msg) {
-	  //console.log(...args, 'say');
-
-	  return Dialogue('say', { msg: msg });
-	}
-
-	function maybe(text) {
-	  return {
-	    then: function then(next) {
-	      return { next: next, text: text };
-	    }
-	  };
-	}
-
-	function asks() {
-	  for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-	    args[_key] = arguments[_key];
-	  }
-
-	  return Dialogue('question', {
-	    question: args[0],
-	    choices: args.slice(1)
-	  });
-	}
-
-	function action(str) {
-	  return Dialogue('action', str);
-	}
-
-	var awnsers = says;
-	exports.awnsers = awnsers;
-
-	var story = says("Hello there!").then(says("sup dude!")).then(asks("Are you cool?", maybe("Nope!").then(says("shit")), maybe("I guess so").then(says("good good!").then(says("fuck you"))))).then(says("End!"));
-
-	function display(text, story, priest, boy) {
-	  var q = story.current.type == 'question';
-
-	  var totalHeight = 0;
-	  var l = 0;
-
-	  var h = function h(amt) {
-	    totalHeight += amt;
-	    return amt;
-	  };
-
-	  var y = 0;
-
-	  var content = {
-	    children: [{
-	      x: story.current.owner === 'Priest' ? -6 : -7.5,
-	      y: -9,
-
-	      scale: [3, 3],
-
-	      src: priest
-	    }, {
-	      x: story.current.owner !== 'Priest' ? 32 : 33.5,
-	      y: -9,
-
-	      scale: [3, 3],
-
-	      src: boy
-	    }, {
-	      width: 128 - 4,
-	      height: h(Math.ceil(story.current.text.length / 24) * 7),
-	      x: 0,
-	      y: 0,
-
-	      fill: 'cornflowerblue'
-	    }, story.current.choices ? {
-	      x: 2,
-	      y: 2,
-
-	      children: story.current.choices.map(function (c, i) {
-	        var height = Math.ceil(c.text.length / 24) * 7;
-
-	        y += height;
-
-	        return {
-	          children: [{
-	            x: -2,
-	            y: y - height + 12,
-
-	            width: 124 + i,
-	            height: h(height),
-
-	            fill: i == 0 ? 'yellow' : 'red'
-	          }, text(0, y - height + 13, c.text)]
-	        };
-	      })
-	    } : {}, text(2, 1, story.current.text)]
-	  };
-
-	  return {
-	    x: 2,
-	    y: 119 - totalHeight,
-
-	    children: [content]
-	  };
-	}
+	eval("module.exports = true;\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.library.js\n ** module id = 9\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.library.js?");
 
 /***/ },
 /* 10 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	/*! http://mths.be/array-from v0.2.0 by @mathias */
-	'use strict';
-
-	if (!Array.from) {
-		(function () {
-			'use strict';
-			var defineProperty = (function () {
-				// IE 8 only supports `Object.defineProperty` on DOM elements.
-				try {
-					var object = {};
-					var $defineProperty = Object.defineProperty;
-					var result = $defineProperty(object, object, object) && $defineProperty;
-				} catch (error) {}
-				return result || function put(object, key, descriptor) {
-					object[key] = descriptor.value;
-				};
-			})();
-			var toStr = Object.prototype.toString;
-			var isCallable = function isCallable(fn) {
-				// In a perfect world, the `typeof` check would be sufficient. However,
-				// in Chrome 1–12, `typeof /x/ == 'object'`, and in IE 6–8
-				// `typeof alert == 'object'` and similar for other host objects.
-				return typeof fn == 'function' || toStr.call(fn) == '[object Function]';
-			};
-			var toInteger = function toInteger(value) {
-				var number = Number(value);
-				if (isNaN(number)) {
-					return 0;
-				}
-				if (number == 0 || !isFinite(number)) {
-					return number;
-				}
-				return (number > 0 ? 1 : -1) * Math.floor(Math.abs(number));
-			};
-			var maxSafeInteger = Math.pow(2, 53) - 1;
-			var toLength = function toLength(value) {
-				var len = toInteger(value);
-				return Math.min(Math.max(len, 0), maxSafeInteger);
-			};
-			var from = function from(arrayLike) {
-				var C = this;
-				if (arrayLike == null) {
-					throw new TypeError('`Array.from` requires an array-like object, not `null` or `undefined`');
-				}
-				var items = Object(arrayLike);
-				var mapping = arguments.length > 1;
-
-				var mapFn, T;
-				if (arguments.length > 1) {
-					mapFn = arguments[1];
-					if (!isCallable(mapFn)) {
-						throw new TypeError('When provided, the second argument to `Array.from` must be a function');
-					}
-					if (arguments.length > 2) {
-						T = arguments[2];
-					}
-				}
-
-				var len = toLength(items.length);
-				var A = isCallable(C) ? Object(new C(len)) : new Array(len);
-				var k = 0;
-				var kValue, mappedValue;
-				while (k < len) {
-					kValue = items[k];
-					if (mapFn) {
-						mappedValue = typeof T == 'undefined' ? mapFn(kValue, k) : mapFn.call(T, kValue, k);
-					} else {
-						mappedValue = kValue;
-					}
-					defineProperty(A, k, {
-						'value': mappedValue,
-						'configurable': true,
-						'enumerable': true
-					});
-					++k;
-				}
-				A.length = len;
-				return A;
-			};
-			defineProperty(Array, 'from', {
-				'value': from,
-				'configurable': true,
-				'writable': true
-			});
-		})();
-	}
+	eval("var global    = __webpack_require__(11)\n  , core      = __webpack_require__(12)\n  , PROTOTYPE = 'prototype';\nvar ctx = function(fn, that){\n  return function(){\n    return fn.apply(that, arguments);\n  };\n};\nvar $def = function(type, name, source){\n  var key, own, out, exp\n    , isGlobal = type & $def.G\n    , isProto  = type & $def.P\n    , target   = isGlobal ? global : type & $def.S\n        ? global[name] : (global[name] || {})[PROTOTYPE]\n    , exports  = isGlobal ? core : core[name] || (core[name] = {});\n  if(isGlobal)source = name;\n  for(key in source){\n    // contains in native\n    own = !(type & $def.F) && target && key in target;\n    if(own && key in exports)continue;\n    // export native or passed\n    out = own ? target[key] : source[key];\n    // prevent global pollution for namespaces\n    if(isGlobal && typeof target[key] != 'function')exp = source[key];\n    // bind timers to global for call from export context\n    else if(type & $def.B && own)exp = ctx(out, global);\n    // wrap global constructors for prevent change them in library\n    else if(type & $def.W && target[key] == out)!function(C){\n      exp = function(param){\n        return this instanceof C ? new C(param) : C(param);\n      };\n      exp[PROTOTYPE] = C[PROTOTYPE];\n    }(out);\n    else exp = isProto && typeof out == 'function' ? ctx(Function.call, out) : out;\n    // export\n    exports[key] = exp;\n    if(isProto)(exports[PROTOTYPE] || (exports[PROTOTYPE] = {}))[key] = out;\n  }\n};\n// type bitmap\n$def.F = 1;  // forced\n$def.G = 2;  // global\n$def.S = 4;  // static\n$def.P = 8;  // proto\n$def.B = 16; // bind\n$def.W = 32; // wrap\nmodule.exports = $def;\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.def.js\n ** module id = 10\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.def.js?");
 
 /***/ },
 /* 11 */
 /***/ function(module, exports) {
 
-	'use strict';
-
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
-	exports.init = init;
-	var letters = {
-	  a: 0,
-	  b: 1,
-	  c: 2,
-	  d: 3,
-	  e: 4,
-	  f: 5,
-	  g: 6,
-	  h: 7,
-	  i: 8,
-	  j: 9,
-	  k: 10,
-	  l: 11,
-	  m: 12,
-	  n: 13,
-	  o: 14,
-	  p: 15,
-	  q: 16,
-	  r: 17,
-	  s: 18,
-	  t: 19,
-	  u: 20,
-	  v: 21,
-	  w: 22,
-	  x: 23,
-	  y: 24,
-	  z: 25,
-	  '?': 26,
-	  '!': 27,
-	  ':': 28,
-	  '1': 29,
-	  '2': 30,
-	  '3': 31,
-	  '4': 32,
-	  '5': 33,
-	  '6': 34,
-	  '7': 35,
-	  '8': 36,
-	  '9': 37,
-	  '0': 38,
-	  ' ': 39,
-	  '.': 40,
-	  ',': 41,
-	  "'": 42,
-	  '-': 43
-	};
-
-	var limit = 24;
-
-	function init(font) {
-	  return function (x, y) {
-	    var text = arguments.length <= 2 || arguments[2] === undefined ? '' : arguments[2];
-
-	    var reduce = 0;
-
-	    var imgs = text.toLowerCase().split('').map(function (char, i) {
-	      if (char == ' ' && i % 24 == 0) {
-	        reduce += 1;
-
-	        return false;
-	      }
-
-	      return {
-	        x: (i - reduce) % 24 * 5,
-	        y: 6 * Math.floor((i - reduce) / 24),
-	        src: font[letters[char]] || font[26]
-	      };
-	    }).filter(function (a) {
-	      return a;
-	    });
-
-	    return {
-	      x: x,
-	      y: y,
-
-	      scale: [1, 1],
-
-	      children: imgs
-	    };
-	  };
-	}
-
-	;
+	eval("var global = typeof self != 'undefined' && self.Math == Math ? self : Function('return this')();\nmodule.exports = global;\nif(typeof __g == 'number')__g = global; // eslint-disable-line no-undef\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.global.js\n ** module id = 11\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.global.js?");
 
 /***/ },
 /* 12 */
+/***/ function(module, exports) {
+
+	eval("var core = module.exports = {};\nif(typeof __e == 'number')__e = core; // eslint-disable-line no-undef\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.core.js\n ** module id = 12\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.core.js?");
+
+/***/ },
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Dialogue, Person, action, asks, awnsers, boy, but, c, gameover, maybe, priest, ref, says, stealFish, stories;
+	eval("module.exports = __webpack_require__(14);\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.redef.js\n ** module id = 13\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.redef.js?");
 
-	ref = __webpack_require__(9), says = ref.says, asks = ref.asks, maybe = ref.maybe, but = ref.but, awnsers = ref.awnsers, Dialogue = ref.Dialogue, action = ref.action;
+/***/ },
+/* 14 */
+/***/ function(module, exports, __webpack_require__) {
 
-	Person = function(name) {
-	  return function(a) {
-	    a.args.owner = name;
-	    return a;
-	  };
-	};
+	eval("var $          = __webpack_require__(15)\n  , createDesc = __webpack_require__(16);\nmodule.exports = __webpack_require__(17) ? function(object, key, value){\n  return $.setDesc(object, key, createDesc(1, value));\n} : function(object, key, value){\n  object[key] = value;\n  return object;\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.hide.js\n ** module id = 14\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.hide.js?");
 
-	boy = Person('Boy');
+/***/ },
+/* 15 */
+/***/ function(module, exports) {
 
-	priest = Person('Priest');
+	eval("var $Object = Object;\nmodule.exports = {\n  create:     $Object.create,\n  getProto:   $Object.getPrototypeOf,\n  isEnum:     {}.propertyIsEnumerable,\n  getDesc:    $Object.getOwnPropertyDescriptor,\n  setDesc:    $Object.defineProperty,\n  setDescs:   $Object.defineProperties,\n  getKeys:    $Object.keys,\n  getNames:   $Object.getOwnPropertyNames,\n  getSymbols: $Object.getOwnPropertySymbols,\n  each:       [].forEach\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.js\n ** module id = 15\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.js?");
 
-	c = priest(says("Aww.. Too bad, I know the best place to find fish tho!")).then(boy(says("Are you serious?"))).then(priest(says("Yes!"))).then(boy(says("Can I change my mind? ;)")));
+/***/ },
+/* 16 */
+/***/ function(module, exports) {
 
-	stealFish = priest(says("FISH! Omg i luv fish! Can i have some!?!?"));
+	eval("module.exports = function(bitmap, value){\n  return {\n    enumerable  : !(bitmap & 1),\n    configurable: !(bitmap & 2),\n    writable    : !(bitmap & 4),\n    value       : value\n  };\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.property-desc.js\n ** module id = 16\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.property-desc.js?");
 
-	gameover = action('game over');
+/***/ },
+/* 17 */
+/***/ function(module, exports, __webpack_require__) {
 
-	stories = {
-	  another: boy(says("Hello there!")).then(priest(says("Why welcome son!"))).then(boy(says("I've sined father!"))).then(priest(asks("You have? Oh, that's too bad! What's the matter?", maybe("I've eaten 10 bananas").then(priest(asks("That's aright, nobody like bananas any way!", maybe("Ah...okay...then I go back home").then(gameover), maybe("Ikr? Bananas are awful. I stole fish, no kidding now.").then(stealFish)))), maybe("I've stolen fish").then(stealFish)))).then(boy(says("You want to steal fish?"))).then(priest(asks("YES! Will you teach me?", maybe("Well...").then(priest(asks("Come on, please!", maybe("Aright then...").then(priest(says("WUHU! ADVENTURE LIES AHEAD!"))), maybe("What the heck, come along!").then(priest(says("WUHU! ADVENTURE LIES AHEAD!")))))), maybe("No way! Not gonna happen!").then(c)))).then(priest(says("Follow me! I know the greatest place to get the freashest fish!"))).then(priest(says("Follow me! I know the greatest place to get the freashest fish!")))
-	};
+	eval("// Thank's IE8 for his funny defineProperty\nmodule.exports = !__webpack_require__(18)(function(){\n  return Object.defineProperty({}, 'a', {get: function(){ return 7; }}).a != 7;\n});\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.support-desc.js\n ** module id = 17\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.support-desc.js?");
 
-	module.exports = stories;
+/***/ },
+/* 18 */
+/***/ function(module, exports) {
 
+	eval("module.exports = function(exec){\n  try {\n    return !!exec();\n  } catch(e){\n    return true;\n  }\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.fails.js\n ** module id = 18\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.fails.js?");
+
+/***/ },
+/* 19 */
+/***/ function(module, exports) {
+
+	eval("var hasOwnProperty = {}.hasOwnProperty;\nmodule.exports = function(it, key){\n  return hasOwnProperty.call(it, key);\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.has.js\n ** module id = 19\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.has.js?");
+
+/***/ },
+/* 20 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("var store  = __webpack_require__(21)('wks')\n  , Symbol = __webpack_require__(11).Symbol;\nmodule.exports = function(name){\n  return store[name] || (store[name] =\n    Symbol && Symbol[name] || (Symbol || __webpack_require__(22))('Symbol.' + name));\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.wks.js\n ** module id = 20\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.wks.js?");
+
+/***/ },
+/* 21 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("var global = __webpack_require__(11)\n  , SHARED = '__core-js_shared__'\n  , store  = global[SHARED] || (global[SHARED] = {});\nmodule.exports = function(key){\n  return store[key] || (store[key] = {});\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.shared.js\n ** module id = 21\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.shared.js?");
+
+/***/ },
+/* 22 */
+/***/ function(module, exports) {
+
+	eval("var id = 0\n  , px = Math.random();\nmodule.exports = function(key){\n  return 'Symbol('.concat(key === undefined ? '' : key, ')_', (++id + px).toString(36));\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.uid.js\n ** module id = 22\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.uid.js?");
+
+/***/ },
+/* 23 */
+/***/ function(module, exports) {
+
+	eval("module.exports = {};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.iterators.js\n ** module id = 23\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.iterators.js?");
+
+/***/ },
+/* 24 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("'use strict';\nvar $ = __webpack_require__(15)\n  , IteratorPrototype = {};\n\n// 25.1.2.1.1 %IteratorPrototype%[@@iterator]()\n__webpack_require__(14)(IteratorPrototype, __webpack_require__(20)('iterator'), function(){ return this; });\n\nmodule.exports = function(Constructor, NAME, next){\n  Constructor.prototype = $.create(IteratorPrototype, {next: __webpack_require__(16)(1,next)});\n  __webpack_require__(25)(Constructor, NAME + ' Iterator');\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.iter-create.js\n ** module id = 24\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.iter-create.js?");
+
+/***/ },
+/* 25 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("var has  = __webpack_require__(19)\n  , hide = __webpack_require__(14)\n  , TAG  = __webpack_require__(20)('toStringTag');\n\nmodule.exports = function(it, tag, stat){\n  if(it && !has(it = stat ? it : it.prototype, TAG))hide(it, TAG, tag);\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.tag.js\n ** module id = 25\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.tag.js?");
+
+/***/ },
+/* 26 */
+/***/ function(module, exports) {
+
+	eval("// Safari has buggy iterators w/o `next`\nmodule.exports = 'keys' in [] && !('next' in [].keys());\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.iter-buggy.js\n ** module id = 26\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.iter-buggy.js?");
+
+/***/ },
+/* 27 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("'use strict';\nvar ctx         = __webpack_require__(28)\n  , $def        = __webpack_require__(10)\n  , toObject    = __webpack_require__(30)\n  , call        = __webpack_require__(31)\n  , isArrayIter = __webpack_require__(34)\n  , toLength    = __webpack_require__(35)\n  , getIterFn   = __webpack_require__(36);\n$def($def.S + $def.F * !__webpack_require__(39)(function(iter){ Array.from(iter); }), 'Array', {\n  // 22.1.2.1 Array.from(arrayLike, mapfn = undefined, thisArg = undefined)\n  from: function from(arrayLike/*, mapfn = undefined, thisArg = undefined*/){\n    var O       = toObject(arrayLike)\n      , C       = typeof this == 'function' ? this : Array\n      , mapfn   = arguments[1]\n      , mapping = mapfn !== undefined\n      , index   = 0\n      , iterFn  = getIterFn(O)\n      , length, result, step, iterator;\n    if(mapping)mapfn = ctx(mapfn, arguments[2], 2);\n    // if object isn't iterable or it's array with default iterator - use simple case\n    if(iterFn != undefined && !(C == Array && isArrayIter(iterFn))){\n      for(iterator = iterFn.call(O), result = new C; !(step = iterator.next()).done; index++){\n        result[index] = mapping ? call(iterator, mapfn, [step.value, index], true) : step.value;\n      }\n    } else {\n      for(result = new C(length = toLength(O.length)); length > index; index++){\n        result[index] = mapping ? mapfn(O[index], index) : O[index];\n      }\n    }\n    result.length = index;\n    return result;\n  }\n});\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/es6.array.from.js\n ** module id = 27\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/es6.array.from.js?");
+
+/***/ },
+/* 28 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("// optional / simple context binding\nvar aFunction = __webpack_require__(29);\nmodule.exports = function(fn, that, length){\n  aFunction(fn);\n  if(that === undefined)return fn;\n  switch(length){\n    case 1: return function(a){\n      return fn.call(that, a);\n    };\n    case 2: return function(a, b){\n      return fn.call(that, a, b);\n    };\n    case 3: return function(a, b, c){\n      return fn.call(that, a, b, c);\n    };\n  } return function(/* ...args */){\n      return fn.apply(that, arguments);\n    };\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.ctx.js\n ** module id = 28\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.ctx.js?");
+
+/***/ },
+/* 29 */
+/***/ function(module, exports) {
+
+	eval("module.exports = function(it){\n  if(typeof it != 'function')throw TypeError(it + ' is not a function!');\n  return it;\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.a-function.js\n ** module id = 29\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.a-function.js?");
+
+/***/ },
+/* 30 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("// 7.1.13 ToObject(argument)\nvar defined = __webpack_require__(7);\nmodule.exports = function(it){\n  return Object(defined(it));\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.to-object.js\n ** module id = 30\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.to-object.js?");
+
+/***/ },
+/* 31 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("// call something on iterator step with safe closing on error\nvar anObject = __webpack_require__(32);\nmodule.exports = function(iterator, fn, value, entries){\n  try {\n    return entries ? fn(anObject(value)[0], value[1]) : fn(value);\n  // 7.4.6 IteratorClose(iterator, completion)\n  } catch(e){\n    var ret = iterator['return'];\n    if(ret !== undefined)anObject(ret.call(iterator));\n    throw e;\n  }\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.iter-call.js\n ** module id = 31\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.iter-call.js?");
+
+/***/ },
+/* 32 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("var isObject = __webpack_require__(33);\nmodule.exports = function(it){\n  if(!isObject(it))throw TypeError(it + ' is not an object!');\n  return it;\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.an-object.js\n ** module id = 32\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.an-object.js?");
+
+/***/ },
+/* 33 */
+/***/ function(module, exports) {
+
+	eval("// http://jsperf.com/core-js-isobject\nmodule.exports = function(it){\n  return it !== null && (typeof it == 'object' || typeof it == 'function');\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.is-object.js\n ** module id = 33\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.is-object.js?");
+
+/***/ },
+/* 34 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("// check on default Array iterator\nvar Iterators = __webpack_require__(23)\n  , ITERATOR  = __webpack_require__(20)('iterator');\nmodule.exports = function(it){\n  return (Iterators.Array || Array.prototype[ITERATOR]) === it;\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.is-array-iter.js\n ** module id = 34\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.is-array-iter.js?");
+
+/***/ },
+/* 35 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("// 7.1.15 ToLength\nvar toInteger = __webpack_require__(6)\n  , min       = Math.min;\nmodule.exports = function(it){\n  return it > 0 ? min(toInteger(it), 0x1fffffffffffff) : 0; // pow(2, 53) - 1 == 9007199254740991\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.to-length.js\n ** module id = 35\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.to-length.js?");
+
+/***/ },
+/* 36 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("var classof   = __webpack_require__(37)\n  , ITERATOR  = __webpack_require__(20)('iterator')\n  , Iterators = __webpack_require__(23);\nmodule.exports = __webpack_require__(12).getIteratorMethod = function(it){\n  if(it != undefined)return it[ITERATOR] || it['@@iterator'] || Iterators[classof(it)];\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/core.get-iterator-method.js\n ** module id = 36\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/core.get-iterator-method.js?");
+
+/***/ },
+/* 37 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("// getting tag from 19.1.3.6 Object.prototype.toString()\nvar cof = __webpack_require__(38)\n  , TAG = __webpack_require__(20)('toStringTag')\n  // ES3 wrong here\n  , ARG = cof(function(){ return arguments; }()) == 'Arguments';\n\nmodule.exports = function(it){\n  var O, T, B;\n  return it === undefined ? 'Undefined' : it === null ? 'Null'\n    // @@toStringTag case\n    : typeof (T = (O = Object(it))[TAG]) == 'string' ? T\n    // builtinTag case\n    : ARG ? cof(O)\n    // ES3 arguments fallback\n    : (B = cof(O)) == 'Object' && typeof O.callee == 'function' ? 'Arguments' : B;\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.classof.js\n ** module id = 37\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.classof.js?");
+
+/***/ },
+/* 38 */
+/***/ function(module, exports) {
+
+	eval("var toString = {}.toString;\n\nmodule.exports = function(it){\n  return toString.call(it).slice(8, -1);\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.cof.js\n ** module id = 38\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.cof.js?");
+
+/***/ },
+/* 39 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("var SYMBOL_ITERATOR = __webpack_require__(20)('iterator')\n  , SAFE_CLOSING    = false;\ntry {\n  var riter = [7][SYMBOL_ITERATOR]();\n  riter['return'] = function(){ SAFE_CLOSING = true; };\n  Array.from(riter, function(){ throw 2; });\n} catch(e){ /* empty */ }\nmodule.exports = function(exec){\n  if(!SAFE_CLOSING)return false;\n  var safe = false;\n  try {\n    var arr  = [7]\n      , iter = arr[SYMBOL_ITERATOR]();\n    iter.next = function(){ safe = true; };\n    arr[SYMBOL_ITERATOR] = function(){ return iter; };\n    exec(arr);\n  } catch(e){ /* empty */ }\n  return safe;\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.iter-detect.js\n ** module id = 39\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.iter-detect.js?");
+
+/***/ },
+/* 40 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("/* WEBPACK VAR INJECTION */(function(global) {// This method of obtaining a reference to the global object needs to be\n// kept identical to the way it is obtained in runtime.js\nvar g =\n  typeof global === \"object\" ? global :\n  typeof window === \"object\" ? window :\n  typeof self === \"object\" ? self : this;\n\n// Use `getOwnPropertyNames` because not all browsers support calling\n// `hasOwnProperty` on the global `self` object in a worker. See #183.\nvar hadRuntime = g.regeneratorRuntime &&\n  Object.getOwnPropertyNames(g).indexOf(\"regeneratorRuntime\") >= 0;\n\n// Save the old regeneratorRuntime in case it needs to be restored later.\nvar oldRuntime = hadRuntime && g.regeneratorRuntime;\n\n// Force reevalutation of runtime.js.\ng.regeneratorRuntime = undefined;\n\nmodule.exports = __webpack_require__(41);\n\nif (hadRuntime) {\n  // Restore the original runtime.\n  g.regeneratorRuntime = oldRuntime;\n} else {\n  // Remove the global property added by runtime.js.\n  delete g.regeneratorRuntime;\n}\n\nmodule.exports = { \"default\": module.exports, __esModule: true };\n\n/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/regenerator/index.js\n ** module id = 40\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/regenerator/index.js?");
+
+/***/ },
+/* 41 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("/* WEBPACK VAR INJECTION */(function(global, process) {/**\n * Copyright (c) 2014, Facebook, Inc.\n * All rights reserved.\n *\n * This source code is licensed under the BSD-style license found in the\n * https://raw.github.com/facebook/regenerator/master/LICENSE file. An\n * additional grant of patent rights can be found in the PATENTS file in\n * the same directory.\n */\n\n\"use strict\";\n\nvar _Symbol = __webpack_require__(43)[\"default\"];\n\nvar _Symbol$iterator = __webpack_require__(51)[\"default\"];\n\nvar _Object$create = __webpack_require__(57)[\"default\"];\n\nvar _Promise = __webpack_require__(59)[\"default\"];\n\n!(function (global) {\n  \"use strict\";\n\n  var hasOwn = Object.prototype.hasOwnProperty;\n  var undefined; // More compressible than void 0.\n  var iteratorSymbol = typeof _Symbol === \"function\" && _Symbol$iterator || \"@@iterator\";\n\n  var inModule = typeof module === \"object\";\n  var runtime = global.regeneratorRuntime;\n  if (runtime) {\n    if (inModule) {\n      // If regeneratorRuntime is defined globally and we're in a module,\n      // make the exports object identical to regeneratorRuntime.\n      module.exports = runtime;\n    }\n    // Don't bother evaluating the rest of this file if the runtime was\n    // already defined globally.\n    return;\n  }\n\n  // Define the runtime globally (as expected by generated code) as either\n  // module.exports (if we're in a module) or a new, empty object.\n  runtime = global.regeneratorRuntime = inModule ? module.exports : {};\n\n  function wrap(innerFn, outerFn, self, tryLocsList) {\n    // If outerFn provided, then outerFn.prototype instanceof Generator.\n    var generator = _Object$create((outerFn || Generator).prototype);\n\n    generator._invoke = makeInvokeMethod(innerFn, self || null, new Context(tryLocsList || []));\n\n    return generator;\n  }\n  runtime.wrap = wrap;\n\n  // Try/catch helper to minimize deoptimizations. Returns a completion\n  // record like context.tryEntries[i].completion. This interface could\n  // have been (and was previously) designed to take a closure to be\n  // invoked without arguments, but in all the cases we care about we\n  // already have an existing method we want to call, so there's no need\n  // to create a new function object. We can even get away with assuming\n  // the method takes exactly one argument, since that happens to be true\n  // in every case, so we don't have to touch the arguments object. The\n  // only additional allocation required is the completion record, which\n  // has a stable shape and so hopefully should be cheap to allocate.\n  function tryCatch(fn, obj, arg) {\n    try {\n      return { type: \"normal\", arg: fn.call(obj, arg) };\n    } catch (err) {\n      return { type: \"throw\", arg: err };\n    }\n  }\n\n  var GenStateSuspendedStart = \"suspendedStart\";\n  var GenStateSuspendedYield = \"suspendedYield\";\n  var GenStateExecuting = \"executing\";\n  var GenStateCompleted = \"completed\";\n\n  // Returning this object from the innerFn has the same effect as\n  // breaking out of the dispatch switch statement.\n  var ContinueSentinel = {};\n\n  // Dummy constructor functions that we use as the .constructor and\n  // .constructor.prototype properties for functions that return Generator\n  // objects. For full spec compliance, you may wish to configure your\n  // minifier not to mangle the names of these two functions.\n  function Generator() {}\n  function GeneratorFunction() {}\n  function GeneratorFunctionPrototype() {}\n\n  var Gp = GeneratorFunctionPrototype.prototype = Generator.prototype;\n  GeneratorFunction.prototype = Gp.constructor = GeneratorFunctionPrototype;\n  GeneratorFunctionPrototype.constructor = GeneratorFunction;\n  GeneratorFunction.displayName = \"GeneratorFunction\";\n\n  // Helper for defining the .next, .throw, and .return methods of the\n  // Iterator interface in terms of a single ._invoke method.\n  function defineIteratorMethods(prototype) {\n    [\"next\", \"throw\", \"return\"].forEach(function (method) {\n      prototype[method] = function (arg) {\n        return this._invoke(method, arg);\n      };\n    });\n  }\n\n  runtime.isGeneratorFunction = function (genFun) {\n    var ctor = typeof genFun === \"function\" && genFun.constructor;\n    return ctor ? ctor === GeneratorFunction ||\n    // For the native GeneratorFunction constructor, the best we can\n    // do is to check its .name property.\n    (ctor.displayName || ctor.name) === \"GeneratorFunction\" : false;\n  };\n\n  runtime.mark = function (genFun) {\n    genFun.__proto__ = GeneratorFunctionPrototype;\n    genFun.prototype = _Object$create(Gp);\n    return genFun;\n  };\n\n  // Within the body of any async function, `await x` is transformed to\n  // `yield regeneratorRuntime.awrap(x)`, so that the runtime can test\n  // `value instanceof AwaitArgument` to determine if the yielded value is\n  // meant to be awaited. Some may consider the name of this method too\n  // cutesy, but they are curmudgeons.\n  runtime.awrap = function (arg) {\n    return new AwaitArgument(arg);\n  };\n\n  function AwaitArgument(arg) {\n    this.arg = arg;\n  }\n\n  function AsyncIterator(generator) {\n    // This invoke function is written in a style that assumes some\n    // calling function (or Promise) will handle exceptions.\n    function invoke(method, arg) {\n      var result = generator[method](arg);\n      var value = result.value;\n      return value instanceof AwaitArgument ? _Promise.resolve(value.arg).then(invokeNext, invokeThrow) : _Promise.resolve(value).then(function (unwrapped) {\n        // When a yielded Promise is resolved, its final value becomes\n        // the .value of the Promise<{value,done}> result for the\n        // current iteration. If the Promise is rejected, however, the\n        // result for this iteration will be rejected with the same\n        // reason. Note that rejections of yielded Promises are not\n        // thrown back into the generator function, as is the case\n        // when an awaited Promise is rejected. This difference in\n        // behavior between yield and await is important, because it\n        // allows the consumer to decide what to do with the yielded\n        // rejection (swallow it and continue, manually .throw it back\n        // into the generator, abandon iteration, whatever). With\n        // await, by contrast, there is no opportunity to examine the\n        // rejection reason outside the generator function, so the\n        // only option is to throw it from the await expression, and\n        // let the generator function handle the exception.\n        result.value = unwrapped;\n        return result;\n      });\n    }\n\n    if (typeof process === \"object\" && process.domain) {\n      invoke = process.domain.bind(invoke);\n    }\n\n    var invokeNext = invoke.bind(generator, \"next\");\n    var invokeThrow = invoke.bind(generator, \"throw\");\n    var invokeReturn = invoke.bind(generator, \"return\");\n    var previousPromise;\n\n    function enqueue(method, arg) {\n      var enqueueResult =\n      // If enqueue has been called before, then we want to wait until\n      // all previous Promises have been resolved before calling invoke,\n      // so that results are always delivered in the correct order. If\n      // enqueue has not been called before, then it is important to\n      // call invoke immediately, without waiting on a callback to fire,\n      // so that the async generator function has the opportunity to do\n      // any necessary setup in a predictable way. This predictability\n      // is why the Promise constructor synchronously invokes its\n      // executor callback, and why async functions synchronously\n      // execute code before the first await. Since we implement simple\n      // async functions in terms of async generators, it is especially\n      // important to get this right, even though it requires care.\n      previousPromise ? previousPromise.then(function () {\n        return invoke(method, arg);\n      }) : new _Promise(function (resolve) {\n        resolve(invoke(method, arg));\n      });\n\n      // Avoid propagating enqueueResult failures to Promises returned by\n      // later invocations of the iterator.\n      previousPromise = enqueueResult[\"catch\"](function (ignored) {});\n\n      return enqueueResult;\n    }\n\n    // Define the unified helper method that is used to implement .next,\n    // .throw, and .return (see defineIteratorMethods).\n    this._invoke = enqueue;\n  }\n\n  defineIteratorMethods(AsyncIterator.prototype);\n\n  // Note that simple async functions are implemented on top of\n  // AsyncIterator objects; they just return a Promise for the value of\n  // the final result produced by the iterator.\n  runtime.async = function (innerFn, outerFn, self, tryLocsList) {\n    var iter = new AsyncIterator(wrap(innerFn, outerFn, self, tryLocsList));\n\n    return runtime.isGeneratorFunction(outerFn) ? iter // If outerFn is a generator, return the full iterator.\n    : iter.next().then(function (result) {\n      return result.done ? result.value : iter.next();\n    });\n  };\n\n  function makeInvokeMethod(innerFn, self, context) {\n    var state = GenStateSuspendedStart;\n\n    return function invoke(method, arg) {\n      if (state === GenStateExecuting) {\n        throw new Error(\"Generator is already running\");\n      }\n\n      if (state === GenStateCompleted) {\n        if (method === \"throw\") {\n          throw arg;\n        }\n\n        // Be forgiving, per 25.3.3.3.3 of the spec:\n        // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-generatorresume\n        return doneResult();\n      }\n\n      while (true) {\n        var delegate = context.delegate;\n        if (delegate) {\n          if (method === \"return\" || method === \"throw\" && delegate.iterator[method] === undefined) {\n            // A return or throw (when the delegate iterator has no throw\n            // method) always terminates the yield* loop.\n            context.delegate = null;\n\n            // If the delegate iterator has a return method, give it a\n            // chance to clean up.\n            var returnMethod = delegate.iterator[\"return\"];\n            if (returnMethod) {\n              var record = tryCatch(returnMethod, delegate.iterator, arg);\n              if (record.type === \"throw\") {\n                // If the return method threw an exception, let that\n                // exception prevail over the original return or throw.\n                method = \"throw\";\n                arg = record.arg;\n                continue;\n              }\n            }\n\n            if (method === \"return\") {\n              // Continue with the outer return, now that the delegate\n              // iterator has been terminated.\n              continue;\n            }\n          }\n\n          var record = tryCatch(delegate.iterator[method], delegate.iterator, arg);\n\n          if (record.type === \"throw\") {\n            context.delegate = null;\n\n            // Like returning generator.throw(uncaught), but without the\n            // overhead of an extra function call.\n            method = \"throw\";\n            arg = record.arg;\n            continue;\n          }\n\n          // Delegate generator ran and handled its own exceptions so\n          // regardless of what the method was, we continue as if it is\n          // \"next\" with an undefined arg.\n          method = \"next\";\n          arg = undefined;\n\n          var info = record.arg;\n          if (info.done) {\n            context[delegate.resultName] = info.value;\n            context.next = delegate.nextLoc;\n          } else {\n            state = GenStateSuspendedYield;\n            return info;\n          }\n\n          context.delegate = null;\n        }\n\n        if (method === \"next\") {\n          if (state === GenStateSuspendedYield) {\n            context.sent = arg;\n          } else {\n            context.sent = undefined;\n          }\n        } else if (method === \"throw\") {\n          if (state === GenStateSuspendedStart) {\n            state = GenStateCompleted;\n            throw arg;\n          }\n\n          if (context.dispatchException(arg)) {\n            // If the dispatched exception was caught by a catch block,\n            // then let that catch block handle the exception normally.\n            method = \"next\";\n            arg = undefined;\n          }\n        } else if (method === \"return\") {\n          context.abrupt(\"return\", arg);\n        }\n\n        state = GenStateExecuting;\n\n        var record = tryCatch(innerFn, self, context);\n        if (record.type === \"normal\") {\n          // If an exception is thrown from innerFn, we leave state ===\n          // GenStateExecuting and loop back for another invocation.\n          state = context.done ? GenStateCompleted : GenStateSuspendedYield;\n\n          var info = {\n            value: record.arg,\n            done: context.done\n          };\n\n          if (record.arg === ContinueSentinel) {\n            if (context.delegate && method === \"next\") {\n              // Deliberately forget the last sent value so that we don't\n              // accidentally pass it on to the delegate.\n              arg = undefined;\n            }\n          } else {\n            return info;\n          }\n        } else if (record.type === \"throw\") {\n          state = GenStateCompleted;\n          // Dispatch the exception by looping back around to the\n          // context.dispatchException(arg) call above.\n          method = \"throw\";\n          arg = record.arg;\n        }\n      }\n    };\n  }\n\n  // Define Generator.prototype.{next,throw,return} in terms of the\n  // unified ._invoke helper method.\n  defineIteratorMethods(Gp);\n\n  Gp[iteratorSymbol] = function () {\n    return this;\n  };\n\n  Gp.toString = function () {\n    return \"[object Generator]\";\n  };\n\n  function pushTryEntry(locs) {\n    var entry = { tryLoc: locs[0] };\n\n    if (1 in locs) {\n      entry.catchLoc = locs[1];\n    }\n\n    if (2 in locs) {\n      entry.finallyLoc = locs[2];\n      entry.afterLoc = locs[3];\n    }\n\n    this.tryEntries.push(entry);\n  }\n\n  function resetTryEntry(entry) {\n    var record = entry.completion || {};\n    record.type = \"normal\";\n    delete record.arg;\n    entry.completion = record;\n  }\n\n  function Context(tryLocsList) {\n    // The root entry object (effectively a try statement without a catch\n    // or a finally block) gives us a place to store values thrown from\n    // locations where there is no enclosing try statement.\n    this.tryEntries = [{ tryLoc: \"root\" }];\n    tryLocsList.forEach(pushTryEntry, this);\n    this.reset(true);\n  }\n\n  runtime.keys = function (object) {\n    var keys = [];\n    for (var key in object) {\n      keys.push(key);\n    }\n    keys.reverse();\n\n    // Rather than returning an object with a next method, we keep\n    // things simple and return the next function itself.\n    return function next() {\n      while (keys.length) {\n        var key = keys.pop();\n        if (key in object) {\n          next.value = key;\n          next.done = false;\n          return next;\n        }\n      }\n\n      // To avoid creating an additional object, we just hang the .value\n      // and .done properties off the next function object itself. This\n      // also ensures that the minifier will not anonymize the function.\n      next.done = true;\n      return next;\n    };\n  };\n\n  function values(iterable) {\n    if (iterable) {\n      var iteratorMethod = iterable[iteratorSymbol];\n      if (iteratorMethod) {\n        return iteratorMethod.call(iterable);\n      }\n\n      if (typeof iterable.next === \"function\") {\n        return iterable;\n      }\n\n      if (!isNaN(iterable.length)) {\n        var i = -1,\n            next = function next() {\n          while (++i < iterable.length) {\n            if (hasOwn.call(iterable, i)) {\n              next.value = iterable[i];\n              next.done = false;\n              return next;\n            }\n          }\n\n          next.value = undefined;\n          next.done = true;\n\n          return next;\n        };\n\n        return next.next = next;\n      }\n    }\n\n    // Return an iterator with no values.\n    return { next: doneResult };\n  }\n  runtime.values = values;\n\n  function doneResult() {\n    return { value: undefined, done: true };\n  }\n\n  Context.prototype = {\n    constructor: Context,\n\n    reset: function reset(skipTempReset) {\n      this.prev = 0;\n      this.next = 0;\n      this.sent = undefined;\n      this.done = false;\n      this.delegate = null;\n\n      this.tryEntries.forEach(resetTryEntry);\n\n      if (!skipTempReset) {\n        for (var name in this) {\n          // Not sure about the optimal order of these conditions:\n          if (name.charAt(0) === \"t\" && hasOwn.call(this, name) && !isNaN(+name.slice(1))) {\n            this[name] = undefined;\n          }\n        }\n      }\n    },\n\n    stop: function stop() {\n      this.done = true;\n\n      var rootEntry = this.tryEntries[0];\n      var rootRecord = rootEntry.completion;\n      if (rootRecord.type === \"throw\") {\n        throw rootRecord.arg;\n      }\n\n      return this.rval;\n    },\n\n    dispatchException: function dispatchException(exception) {\n      if (this.done) {\n        throw exception;\n      }\n\n      var context = this;\n      function handle(loc, caught) {\n        record.type = \"throw\";\n        record.arg = exception;\n        context.next = loc;\n        return !!caught;\n      }\n\n      for (var i = this.tryEntries.length - 1; i >= 0; --i) {\n        var entry = this.tryEntries[i];\n        var record = entry.completion;\n\n        if (entry.tryLoc === \"root\") {\n          // Exception thrown outside of any try block that could handle\n          // it, so set the completion value of the entire function to\n          // throw the exception.\n          return handle(\"end\");\n        }\n\n        if (entry.tryLoc <= this.prev) {\n          var hasCatch = hasOwn.call(entry, \"catchLoc\");\n          var hasFinally = hasOwn.call(entry, \"finallyLoc\");\n\n          if (hasCatch && hasFinally) {\n            if (this.prev < entry.catchLoc) {\n              return handle(entry.catchLoc, true);\n            } else if (this.prev < entry.finallyLoc) {\n              return handle(entry.finallyLoc);\n            }\n          } else if (hasCatch) {\n            if (this.prev < entry.catchLoc) {\n              return handle(entry.catchLoc, true);\n            }\n          } else if (hasFinally) {\n            if (this.prev < entry.finallyLoc) {\n              return handle(entry.finallyLoc);\n            }\n          } else {\n            throw new Error(\"try statement without catch or finally\");\n          }\n        }\n      }\n    },\n\n    abrupt: function abrupt(type, arg) {\n      for (var i = this.tryEntries.length - 1; i >= 0; --i) {\n        var entry = this.tryEntries[i];\n        if (entry.tryLoc <= this.prev && hasOwn.call(entry, \"finallyLoc\") && this.prev < entry.finallyLoc) {\n          var finallyEntry = entry;\n          break;\n        }\n      }\n\n      if (finallyEntry && (type === \"break\" || type === \"continue\") && finallyEntry.tryLoc <= arg && arg <= finallyEntry.finallyLoc) {\n        // Ignore the finally entry if control is not jumping to a\n        // location outside the try/catch block.\n        finallyEntry = null;\n      }\n\n      var record = finallyEntry ? finallyEntry.completion : {};\n      record.type = type;\n      record.arg = arg;\n\n      if (finallyEntry) {\n        this.next = finallyEntry.finallyLoc;\n      } else {\n        this.complete(record);\n      }\n\n      return ContinueSentinel;\n    },\n\n    complete: function complete(record, afterLoc) {\n      if (record.type === \"throw\") {\n        throw record.arg;\n      }\n\n      if (record.type === \"break\" || record.type === \"continue\") {\n        this.next = record.arg;\n      } else if (record.type === \"return\") {\n        this.rval = record.arg;\n        this.next = \"end\";\n      } else if (record.type === \"normal\" && afterLoc) {\n        this.next = afterLoc;\n      }\n    },\n\n    finish: function finish(finallyLoc) {\n      for (var i = this.tryEntries.length - 1; i >= 0; --i) {\n        var entry = this.tryEntries[i];\n        if (entry.finallyLoc === finallyLoc) {\n          this.complete(entry.completion, entry.afterLoc);\n          resetTryEntry(entry);\n          return ContinueSentinel;\n        }\n      }\n    },\n\n    \"catch\": function _catch(tryLoc) {\n      for (var i = this.tryEntries.length - 1; i >= 0; --i) {\n        var entry = this.tryEntries[i];\n        if (entry.tryLoc === tryLoc) {\n          var record = entry.completion;\n          if (record.type === \"throw\") {\n            var thrown = record.arg;\n            resetTryEntry(entry);\n          }\n          return thrown;\n        }\n      }\n\n      // The context.catch method must only be called with a location\n      // argument that corresponds to a known catch block.\n      throw new Error(\"illegal catch attempt\");\n    },\n\n    delegateYield: function delegateYield(iterable, resultName, nextLoc) {\n      this.delegate = {\n        iterator: values(iterable),\n        resultName: resultName,\n        nextLoc: nextLoc\n      };\n\n      return ContinueSentinel;\n    }\n  };\n})(\n// Among the various tricks for obtaining a reference to the global\n// object, this seems to be the most reliable technique that does not\n// use indirect eval (which violates Content Security Policy).\ntypeof global === \"object\" ? global : typeof window === \"object\" ? window : typeof self === \"object\" ? self : undefined);\n/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(42)))\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/regenerator/runtime.js\n ** module id = 41\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/regenerator/runtime.js?");
+
+/***/ },
+/* 42 */
+/***/ function(module, exports) {
+
+	eval("// shim for using process in browser\n\nvar process = module.exports = {};\nvar queue = [];\nvar draining = false;\nvar currentQueue;\nvar queueIndex = -1;\n\nfunction cleanUpNextTick() {\n    draining = false;\n    if (currentQueue.length) {\n        queue = currentQueue.concat(queue);\n    } else {\n        queueIndex = -1;\n    }\n    if (queue.length) {\n        drainQueue();\n    }\n}\n\nfunction drainQueue() {\n    if (draining) {\n        return;\n    }\n    var timeout = setTimeout(cleanUpNextTick);\n    draining = true;\n\n    var len = queue.length;\n    while(len) {\n        currentQueue = queue;\n        queue = [];\n        while (++queueIndex < len) {\n            currentQueue[queueIndex].run();\n        }\n        queueIndex = -1;\n        len = queue.length;\n    }\n    currentQueue = null;\n    draining = false;\n    clearTimeout(timeout);\n}\n\nprocess.nextTick = function (fun) {\n    var args = new Array(arguments.length - 1);\n    if (arguments.length > 1) {\n        for (var i = 1; i < arguments.length; i++) {\n            args[i - 1] = arguments[i];\n        }\n    }\n    queue.push(new Item(fun, args));\n    if (queue.length === 1 && !draining) {\n        setTimeout(drainQueue, 0);\n    }\n};\n\n// v8 likes predictible objects\nfunction Item(fun, array) {\n    this.fun = fun;\n    this.array = array;\n}\nItem.prototype.run = function () {\n    this.fun.apply(null, this.array);\n};\nprocess.title = 'browser';\nprocess.browser = true;\nprocess.env = {};\nprocess.argv = [];\nprocess.version = ''; // empty string to avoid regexp issues\nprocess.versions = {};\n\nfunction noop() {}\n\nprocess.on = noop;\nprocess.addListener = noop;\nprocess.once = noop;\nprocess.off = noop;\nprocess.removeListener = noop;\nprocess.removeAllListeners = noop;\nprocess.emit = noop;\n\nprocess.binding = function (name) {\n    throw new Error('process.binding is not supported');\n};\n\n// TODO(shtylman)\nprocess.cwd = function () { return '/' };\nprocess.chdir = function (dir) {\n    throw new Error('process.chdir is not supported');\n};\nprocess.umask = function() { return 0; };\n\n\n/*****************\n ** WEBPACK FOOTER\n ** (webpack)/~/node-libs-browser/~/process/browser.js\n ** module id = 42\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///(webpack)/~/node-libs-browser/~/process/browser.js?");
+
+/***/ },
+/* 43 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("module.exports = { \"default\": __webpack_require__(44), __esModule: true };\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/core-js/symbol.js\n ** module id = 43\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/core-js/symbol.js?");
+
+/***/ },
+/* 44 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("__webpack_require__(45);\nmodule.exports = __webpack_require__(12).Symbol;\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/fn/symbol/index.js\n ** module id = 44\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/fn/symbol/index.js?");
+
+/***/ },
+/* 45 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("'use strict';\n// ECMAScript 6 symbols shim\nvar $              = __webpack_require__(15)\n  , global         = __webpack_require__(11)\n  , has            = __webpack_require__(19)\n  , SUPPORT_DESC   = __webpack_require__(17)\n  , $def           = __webpack_require__(10)\n  , $redef         = __webpack_require__(13)\n  , shared         = __webpack_require__(21)\n  , setTag         = __webpack_require__(25)\n  , uid            = __webpack_require__(22)\n  , wks            = __webpack_require__(20)\n  , keyOf          = __webpack_require__(46)\n  , $names         = __webpack_require__(49)\n  , enumKeys       = __webpack_require__(50)\n  , anObject       = __webpack_require__(32)\n  , toIObject      = __webpack_require__(47)\n  , createDesc     = __webpack_require__(16)\n  , getDesc        = $.getDesc\n  , setDesc        = $.setDesc\n  , $create        = $.create\n  , getNames       = $names.get\n  , $Symbol        = global.Symbol\n  , setter         = false\n  , HIDDEN         = wks('_hidden')\n  , isEnum         = $.isEnum\n  , SymbolRegistry = shared('symbol-registry')\n  , AllSymbols     = shared('symbols')\n  , useNative      = typeof $Symbol == 'function'\n  , ObjectProto    = Object.prototype;\n\nvar setSymbolDesc = SUPPORT_DESC ? function(){ // fallback for old Android\n  try {\n    return $create(setDesc({}, HIDDEN, {\n      get: function(){\n        return setDesc(this, HIDDEN, {value: false})[HIDDEN];\n      }\n    }))[HIDDEN] || setDesc;\n  } catch(e){\n    return function(it, key, D){\n      var protoDesc = getDesc(ObjectProto, key);\n      if(protoDesc)delete ObjectProto[key];\n      setDesc(it, key, D);\n      if(protoDesc && it !== ObjectProto)setDesc(ObjectProto, key, protoDesc);\n    };\n  }\n}() : setDesc;\n\nvar wrap = function(tag){\n  var sym = AllSymbols[tag] = $create($Symbol.prototype);\n  sym._k = tag;\n  SUPPORT_DESC && setter && setSymbolDesc(ObjectProto, tag, {\n    configurable: true,\n    set: function(value){\n      if(has(this, HIDDEN) && has(this[HIDDEN], tag))this[HIDDEN][tag] = false;\n      setSymbolDesc(this, tag, createDesc(1, value));\n    }\n  });\n  return sym;\n};\n\nfunction defineProperty(it, key, D){\n  if(D && has(AllSymbols, key)){\n    if(!D.enumerable){\n      if(!has(it, HIDDEN))setDesc(it, HIDDEN, createDesc(1, {}));\n      it[HIDDEN][key] = true;\n    } else {\n      if(has(it, HIDDEN) && it[HIDDEN][key])it[HIDDEN][key] = false;\n      D = $create(D, {enumerable: createDesc(0, false)});\n    } return setSymbolDesc(it, key, D);\n  } return setDesc(it, key, D);\n}\nfunction defineProperties(it, P){\n  anObject(it);\n  var keys = enumKeys(P = toIObject(P))\n    , i    = 0\n    , l = keys.length\n    , key;\n  while(l > i)defineProperty(it, key = keys[i++], P[key]);\n  return it;\n}\nfunction create(it, P){\n  return P === undefined ? $create(it) : defineProperties($create(it), P);\n}\nfunction propertyIsEnumerable(key){\n  var E = isEnum.call(this, key);\n  return E || !has(this, key) || !has(AllSymbols, key) || has(this, HIDDEN) && this[HIDDEN][key]\n    ? E : true;\n}\nfunction getOwnPropertyDescriptor(it, key){\n  var D = getDesc(it = toIObject(it), key);\n  if(D && has(AllSymbols, key) && !(has(it, HIDDEN) && it[HIDDEN][key]))D.enumerable = true;\n  return D;\n}\nfunction getOwnPropertyNames(it){\n  var names  = getNames(toIObject(it))\n    , result = []\n    , i      = 0\n    , key;\n  while(names.length > i)if(!has(AllSymbols, key = names[i++]) && key != HIDDEN)result.push(key);\n  return result;\n}\nfunction getOwnPropertySymbols(it){\n  var names  = getNames(toIObject(it))\n    , result = []\n    , i      = 0\n    , key;\n  while(names.length > i)if(has(AllSymbols, key = names[i++]))result.push(AllSymbols[key]);\n  return result;\n}\n\n// 19.4.1.1 Symbol([description])\nif(!useNative){\n  $Symbol = function Symbol(){\n    if(this instanceof $Symbol)throw TypeError('Symbol is not a constructor');\n    return wrap(uid(arguments[0]));\n  };\n  $redef($Symbol.prototype, 'toString', function(){\n    return this._k;\n  });\n\n  $.create     = create;\n  $.isEnum     = propertyIsEnumerable;\n  $.getDesc    = getOwnPropertyDescriptor;\n  $.setDesc    = defineProperty;\n  $.setDescs   = defineProperties;\n  $.getNames   = $names.get = getOwnPropertyNames;\n  $.getSymbols = getOwnPropertySymbols;\n\n  if(SUPPORT_DESC && !__webpack_require__(9)){\n    $redef(ObjectProto, 'propertyIsEnumerable', propertyIsEnumerable, true);\n  }\n}\n\nvar symbolStatics = {\n  // 19.4.2.1 Symbol.for(key)\n  'for': function(key){\n    return has(SymbolRegistry, key += '')\n      ? SymbolRegistry[key]\n      : SymbolRegistry[key] = $Symbol(key);\n  },\n  // 19.4.2.5 Symbol.keyFor(sym)\n  keyFor: function keyFor(key){\n    return keyOf(SymbolRegistry, key);\n  },\n  useSetter: function(){ setter = true; },\n  useSimple: function(){ setter = false; }\n};\n// 19.4.2.2 Symbol.hasInstance\n// 19.4.2.3 Symbol.isConcatSpreadable\n// 19.4.2.4 Symbol.iterator\n// 19.4.2.6 Symbol.match\n// 19.4.2.8 Symbol.replace\n// 19.4.2.9 Symbol.search\n// 19.4.2.10 Symbol.species\n// 19.4.2.11 Symbol.split\n// 19.4.2.12 Symbol.toPrimitive\n// 19.4.2.13 Symbol.toStringTag\n// 19.4.2.14 Symbol.unscopables\n$.each.call((\n    'hasInstance,isConcatSpreadable,iterator,match,replace,search,' +\n    'species,split,toPrimitive,toStringTag,unscopables'\n  ).split(','), function(it){\n    var sym = wks(it);\n    symbolStatics[it] = useNative ? sym : wrap(sym);\n  }\n);\n\nsetter = true;\n\n$def($def.G + $def.W, {Symbol: $Symbol});\n\n$def($def.S, 'Symbol', symbolStatics);\n\n$def($def.S + $def.F * !useNative, 'Object', {\n  // 19.1.2.2 Object.create(O [, Properties])\n  create: create,\n  // 19.1.2.4 Object.defineProperty(O, P, Attributes)\n  defineProperty: defineProperty,\n  // 19.1.2.3 Object.defineProperties(O, Properties)\n  defineProperties: defineProperties,\n  // 19.1.2.6 Object.getOwnPropertyDescriptor(O, P)\n  getOwnPropertyDescriptor: getOwnPropertyDescriptor,\n  // 19.1.2.7 Object.getOwnPropertyNames(O)\n  getOwnPropertyNames: getOwnPropertyNames,\n  // 19.1.2.8 Object.getOwnPropertySymbols(O)\n  getOwnPropertySymbols: getOwnPropertySymbols\n});\n\n// 19.4.3.5 Symbol.prototype[@@toStringTag]\nsetTag($Symbol, 'Symbol');\n// 20.2.1.9 Math[@@toStringTag]\nsetTag(Math, 'Math', true);\n// 24.3.3 JSON[@@toStringTag]\nsetTag(global.JSON, 'JSON', true);\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/es6.symbol.js\n ** module id = 45\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/es6.symbol.js?");
+
+/***/ },
+/* 46 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("var $         = __webpack_require__(15)\n  , toIObject = __webpack_require__(47);\nmodule.exports = function(object, el){\n  var O      = toIObject(object)\n    , keys   = $.getKeys(O)\n    , length = keys.length\n    , index  = 0\n    , key;\n  while(length > index)if(O[key = keys[index++]] === el)return key;\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.keyof.js\n ** module id = 46\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.keyof.js?");
+
+/***/ },
+/* 47 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("// to indexed object, toObject with fallback for non-array-like ES3 strings\r\nvar IObject = __webpack_require__(48)\r\n  , defined = __webpack_require__(7);\r\nmodule.exports = function(it){\r\n  return IObject(defined(it));\r\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.to-iobject.js\n ** module id = 47\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.to-iobject.js?");
+
+/***/ },
+/* 48 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("// indexed object, fallback for non-array-like ES3 strings\nvar cof = __webpack_require__(38);\nmodule.exports = 0 in Object('z') ? Object : function(it){\n  return cof(it) == 'String' ? it.split('') : Object(it);\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.iobject.js\n ** module id = 48\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.iobject.js?");
+
+/***/ },
+/* 49 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("// fallback for IE11 buggy Object.getOwnPropertyNames with iframe and window\nvar toString  = {}.toString\n  , toIObject = __webpack_require__(47)\n  , getNames  = __webpack_require__(15).getNames;\n\nvar windowNames = typeof window == 'object' && Object.getOwnPropertyNames\n  ? Object.getOwnPropertyNames(window) : [];\n\nvar getWindowNames = function(it){\n  try {\n    return getNames(it);\n  } catch(e){\n    return windowNames.slice();\n  }\n};\n\nmodule.exports.get = function getOwnPropertyNames(it){\n  if(windowNames && toString.call(it) == '[object Window]')return getWindowNames(it);\n  return getNames(toIObject(it));\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.get-names.js\n ** module id = 49\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.get-names.js?");
+
+/***/ },
+/* 50 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("// all enumerable object keys, includes symbols\nvar $ = __webpack_require__(15);\nmodule.exports = function(it){\n  var keys       = $.getKeys(it)\n    , getSymbols = $.getSymbols;\n  if(getSymbols){\n    var symbols = getSymbols(it)\n      , isEnum  = $.isEnum\n      , i       = 0\n      , key;\n    while(symbols.length > i)if(isEnum.call(it, key = symbols[i++]))keys.push(key);\n  }\n  return keys;\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.enum-keys.js\n ** module id = 50\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.enum-keys.js?");
+
+/***/ },
+/* 51 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("module.exports = { \"default\": __webpack_require__(52), __esModule: true };\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/core-js/symbol/iterator.js\n ** module id = 51\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/core-js/symbol/iterator.js?");
+
+/***/ },
+/* 52 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("__webpack_require__(4);\n__webpack_require__(53);\nmodule.exports = __webpack_require__(20)('iterator');\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/fn/symbol/iterator.js\n ** module id = 52\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/fn/symbol/iterator.js?");
+
+/***/ },
+/* 53 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("__webpack_require__(54);\nvar Iterators = __webpack_require__(23);\nIterators.NodeList = Iterators.HTMLCollection = Iterators.Array;\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/web.dom.iterable.js\n ** module id = 53\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/web.dom.iterable.js?");
+
+/***/ },
+/* 54 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("'use strict';\nvar setUnscope = __webpack_require__(55)\n  , step       = __webpack_require__(56)\n  , Iterators  = __webpack_require__(23)\n  , toIObject  = __webpack_require__(47);\n\n// 22.1.3.4 Array.prototype.entries()\n// 22.1.3.13 Array.prototype.keys()\n// 22.1.3.29 Array.prototype.values()\n// 22.1.3.30 Array.prototype[@@iterator]()\n__webpack_require__(8)(Array, 'Array', function(iterated, kind){\n  this._t = toIObject(iterated); // target\n  this._i = 0;                   // next index\n  this._k = kind;                // kind\n// 22.1.5.2.1 %ArrayIteratorPrototype%.next()\n}, function(){\n  var O     = this._t\n    , kind  = this._k\n    , index = this._i++;\n  if(!O || index >= O.length){\n    this._t = undefined;\n    return step(1);\n  }\n  if(kind == 'keys'  )return step(0, index);\n  if(kind == 'values')return step(0, O[index]);\n  return step(0, [index, O[index]]);\n}, 'values');\n\n// argumentsList[@@iterator] is %ArrayProto_values% (9.4.4.6, 9.4.4.7)\nIterators.Arguments = Iterators.Array;\n\nsetUnscope('keys');\nsetUnscope('values');\nsetUnscope('entries');\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/es6.array.iterator.js\n ** module id = 54\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/es6.array.iterator.js?");
+
+/***/ },
+/* 55 */
+/***/ function(module, exports) {
+
+	eval("module.exports = function(){ /* empty */ };\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.unscope.js\n ** module id = 55\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.unscope.js?");
+
+/***/ },
+/* 56 */
+/***/ function(module, exports) {
+
+	eval("module.exports = function(done, value){\n  return {value: value, done: !!done};\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.iter-step.js\n ** module id = 56\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.iter-step.js?");
+
+/***/ },
+/* 57 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("module.exports = { \"default\": __webpack_require__(58), __esModule: true };\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/core-js/object/create.js\n ** module id = 57\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/core-js/object/create.js?");
+
+/***/ },
+/* 58 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("var $ = __webpack_require__(15);\nmodule.exports = function create(P, D){\n  return $.create(P, D);\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/fn/object/create.js\n ** module id = 58\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/fn/object/create.js?");
+
+/***/ },
+/* 59 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("module.exports = { \"default\": __webpack_require__(60), __esModule: true };\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/core-js/promise.js\n ** module id = 59\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/core-js/promise.js?");
+
+/***/ },
+/* 60 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("__webpack_require__(61);\n__webpack_require__(4);\n__webpack_require__(53);\n__webpack_require__(62);\nmodule.exports = __webpack_require__(12).Promise;\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/fn/promise.js\n ** module id = 60\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/fn/promise.js?");
+
+/***/ },
+/* 61 */
+/***/ function(module, exports) {
+
+	eval("\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/es6.object.to-string.js\n ** module id = 61\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/es6.object.to-string.js?");
+
+/***/ },
+/* 62 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("'use strict';\nvar $          = __webpack_require__(15)\n  , LIBRARY    = __webpack_require__(9)\n  , global     = __webpack_require__(11)\n  , ctx        = __webpack_require__(28)\n  , classof    = __webpack_require__(37)\n  , $def       = __webpack_require__(10)\n  , isObject   = __webpack_require__(33)\n  , anObject   = __webpack_require__(32)\n  , aFunction  = __webpack_require__(29)\n  , strictNew  = __webpack_require__(63)\n  , forOf      = __webpack_require__(64)\n  , setProto   = __webpack_require__(65).set\n  , same       = __webpack_require__(66)\n  , species    = __webpack_require__(67)\n  , SPECIES    = __webpack_require__(20)('species')\n  , RECORD     = __webpack_require__(22)('record')\n  , asap       = __webpack_require__(68)\n  , PROMISE    = 'Promise'\n  , process    = global.process\n  , isNode     = classof(process) == 'process'\n  , P          = global[PROMISE]\n  , Wrapper;\n\nvar testResolve = function(sub){\n  var test = new P(function(){});\n  if(sub)test.constructor = Object;\n  return P.resolve(test) === test;\n};\n\nvar useNative = function(){\n  var works = false;\n  function P2(x){\n    var self = new P(x);\n    setProto(self, P2.prototype);\n    return self;\n  }\n  try {\n    works = P && P.resolve && testResolve();\n    setProto(P2, P);\n    P2.prototype = $.create(P.prototype, {constructor: {value: P2}});\n    // actual Firefox has broken subclass support, test that\n    if(!(P2.resolve(5).then(function(){}) instanceof P2)){\n      works = false;\n    }\n    // actual V8 bug, https://code.google.com/p/v8/issues/detail?id=4162\n    if(works && __webpack_require__(17)){\n      var thenableThenGotten = false;\n      P.resolve($.setDesc({}, 'then', {\n        get: function(){ thenableThenGotten = true; }\n      }));\n      works = thenableThenGotten;\n    }\n  } catch(e){ works = false; }\n  return works;\n}();\n\n// helpers\nvar isPromise = function(it){\n  return isObject(it) && (useNative ? classof(it) == 'Promise' : RECORD in it);\n};\nvar sameConstructor = function(a, b){\n  // library wrapper special case\n  if(LIBRARY && a === P && b === Wrapper)return true;\n  return same(a, b);\n};\nvar getConstructor = function(C){\n  var S = anObject(C)[SPECIES];\n  return S != undefined ? S : C;\n};\nvar isThenable = function(it){\n  var then;\n  return isObject(it) && typeof (then = it.then) == 'function' ? then : false;\n};\nvar notify = function(record, isReject){\n  if(record.n)return;\n  record.n = true;\n  var chain = record.c;\n  asap(function(){\n    var value = record.v\n      , ok    = record.s == 1\n      , i     = 0;\n    var run = function(react){\n      var cb = ok ? react.ok : react.fail\n        , ret, then;\n      try {\n        if(cb){\n          if(!ok)record.h = true;\n          ret = cb === true ? value : cb(value);\n          if(ret === react.P){\n            react.rej(TypeError('Promise-chain cycle'));\n          } else if(then = isThenable(ret)){\n            then.call(ret, react.res, react.rej);\n          } else react.res(ret);\n        } else react.rej(value);\n      } catch(err){\n        react.rej(err);\n      }\n    };\n    while(chain.length > i)run(chain[i++]); // variable length - can't use forEach\n    chain.length = 0;\n    record.n = false;\n    if(isReject)setTimeout(function(){\n      asap(function(){\n        if(isUnhandled(record.p)){\n          if(isNode){\n            process.emit('unhandledRejection', value, record.p);\n          } else if(global.console && console.error){\n            console.error('Unhandled promise rejection', value);\n          }\n        }\n        record.a = undefined;\n      });\n    }, 1);\n  });\n};\nvar isUnhandled = function(promise){\n  var record = promise[RECORD]\n    , chain  = record.a || record.c\n    , i      = 0\n    , react;\n  if(record.h)return false;\n  while(chain.length > i){\n    react = chain[i++];\n    if(react.fail || !isUnhandled(react.P))return false;\n  } return true;\n};\nvar $reject = function(value){\n  var record = this;\n  if(record.d)return;\n  record.d = true;\n  record = record.r || record; // unwrap\n  record.v = value;\n  record.s = 2;\n  record.a = record.c.slice();\n  notify(record, true);\n};\nvar $resolve = function(value){\n  var record = this\n    , then;\n  if(record.d)return;\n  record.d = true;\n  record = record.r || record; // unwrap\n  try {\n    if(then = isThenable(value)){\n      asap(function(){\n        var wrapper = {r: record, d: false}; // wrap\n        try {\n          then.call(value, ctx($resolve, wrapper, 1), ctx($reject, wrapper, 1));\n        } catch(e){\n          $reject.call(wrapper, e);\n        }\n      });\n    } else {\n      record.v = value;\n      record.s = 1;\n      notify(record, false);\n    }\n  } catch(e){\n    $reject.call({r: record, d: false}, e); // wrap\n  }\n};\n\n// constructor polyfill\nif(!useNative){\n  // 25.4.3.1 Promise(executor)\n  P = function Promise(executor){\n    aFunction(executor);\n    var record = {\n      p: strictNew(this, P, PROMISE),         // <- promise\n      c: [],                                  // <- awaiting reactions\n      a: undefined,                           // <- checked in isUnhandled reactions\n      s: 0,                                   // <- state\n      d: false,                               // <- done\n      v: undefined,                           // <- value\n      h: false,                               // <- handled rejection\n      n: false                                // <- notify\n    };\n    this[RECORD] = record;\n    try {\n      executor(ctx($resolve, record, 1), ctx($reject, record, 1));\n    } catch(err){\n      $reject.call(record, err);\n    }\n  };\n  __webpack_require__(73)(P.prototype, {\n    // 25.4.5.3 Promise.prototype.then(onFulfilled, onRejected)\n    then: function then(onFulfilled, onRejected){\n      var S = anObject(anObject(this).constructor)[SPECIES];\n      var react = {\n        ok:   typeof onFulfilled == 'function' ? onFulfilled : true,\n        fail: typeof onRejected == 'function'  ? onRejected  : false\n      };\n      var promise = react.P = new (S != undefined ? S : P)(function(res, rej){\n        react.res = aFunction(res);\n        react.rej = aFunction(rej);\n      });\n      var record = this[RECORD];\n      record.c.push(react);\n      if(record.a)record.a.push(react);\n      if(record.s)notify(record, false);\n      return promise;\n    },\n    // 25.4.5.1 Promise.prototype.catch(onRejected)\n    'catch': function(onRejected){\n      return this.then(undefined, onRejected);\n    }\n  });\n}\n\n// export\n$def($def.G + $def.W + $def.F * !useNative, {Promise: P});\n__webpack_require__(25)(P, PROMISE);\nspecies(P);\nspecies(Wrapper = __webpack_require__(12)[PROMISE]);\n\n// statics\n$def($def.S + $def.F * !useNative, PROMISE, {\n  // 25.4.4.5 Promise.reject(r)\n  reject: function reject(r){\n    return new this(function(res, rej){ rej(r); });\n  }\n});\n$def($def.S + $def.F * (!useNative || testResolve(true)), PROMISE, {\n  // 25.4.4.6 Promise.resolve(x)\n  resolve: function resolve(x){\n    return isPromise(x) && sameConstructor(x.constructor, this)\n      ? x : new this(function(res){ res(x); });\n  }\n});\n$def($def.S + $def.F * !(useNative && __webpack_require__(39)(function(iter){\n  P.all(iter)['catch'](function(){});\n})), PROMISE, {\n  // 25.4.4.1 Promise.all(iterable)\n  all: function all(iterable){\n    var C      = getConstructor(this)\n      , values = [];\n    return new C(function(res, rej){\n      forOf(iterable, false, values.push, values);\n      var remaining = values.length\n        , results   = Array(remaining);\n      if(remaining)$.each.call(values, function(promise, index){\n        C.resolve(promise).then(function(value){\n          results[index] = value;\n          --remaining || res(results);\n        }, rej);\n      });\n      else res(results);\n    });\n  },\n  // 25.4.4.4 Promise.race(iterable)\n  race: function race(iterable){\n    var C = getConstructor(this);\n    return new C(function(res, rej){\n      forOf(iterable, false, function(promise){\n        C.resolve(promise).then(res, rej);\n      });\n    });\n  }\n});\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/es6.promise.js\n ** module id = 62\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/es6.promise.js?");
+
+/***/ },
+/* 63 */
+/***/ function(module, exports) {
+
+	eval("module.exports = function(it, Constructor, name){\n  if(!(it instanceof Constructor))throw TypeError(name + \": use the 'new' operator!\");\n  return it;\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.strict-new.js\n ** module id = 63\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.strict-new.js?");
+
+/***/ },
+/* 64 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("var ctx         = __webpack_require__(28)\n  , call        = __webpack_require__(31)\n  , isArrayIter = __webpack_require__(34)\n  , anObject    = __webpack_require__(32)\n  , toLength    = __webpack_require__(35)\n  , getIterFn   = __webpack_require__(36);\nmodule.exports = function(iterable, entries, fn, that){\n  var iterFn = getIterFn(iterable)\n    , f      = ctx(fn, that, entries ? 2 : 1)\n    , index  = 0\n    , length, step, iterator;\n  if(typeof iterFn != 'function')throw TypeError(iterable + ' is not iterable!');\n  // fast case for arrays with default iterator\n  if(isArrayIter(iterFn))for(length = toLength(iterable.length); length > index; index++){\n    entries ? f(anObject(step = iterable[index])[0], step[1]) : f(iterable[index]);\n  } else for(iterator = iterFn.call(iterable); !(step = iterator.next()).done; ){\n    call(iterator, f, step.value, entries);\n  }\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.for-of.js\n ** module id = 64\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.for-of.js?");
+
+/***/ },
+/* 65 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("// Works with __proto__ only. Old v8 can't work with null proto objects.\n/* eslint-disable no-proto */\nvar getDesc  = __webpack_require__(15).getDesc\n  , isObject = __webpack_require__(33)\n  , anObject = __webpack_require__(32);\nvar check = function(O, proto){\n  anObject(O);\n  if(!isObject(proto) && proto !== null)throw TypeError(proto + \": can't set as prototype!\");\n};\nmodule.exports = {\n  set: Object.setPrototypeOf || ('__proto__' in {} // eslint-disable-line\n    ? function(buggy, set){\n        try {\n          set = __webpack_require__(28)(Function.call, getDesc(Object.prototype, '__proto__').set, 2);\n          set({}, []);\n        } catch(e){ buggy = true; }\n        return function setPrototypeOf(O, proto){\n          check(O, proto);\n          if(buggy)O.__proto__ = proto;\n          else set(O, proto);\n          return O;\n        };\n      }()\n    : undefined),\n  check: check\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.set-proto.js\n ** module id = 65\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.set-proto.js?");
+
+/***/ },
+/* 66 */
+/***/ function(module, exports) {
+
+	eval("module.exports = Object.is || function is(x, y){\n  return x === y ? x !== 0 || 1 / x === 1 / y : x != x && y != y;\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.same.js\n ** module id = 66\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.same.js?");
+
+/***/ },
+/* 67 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("'use strict';\nvar $       = __webpack_require__(15)\n  , SPECIES = __webpack_require__(20)('species');\nmodule.exports = function(C){\n  if(__webpack_require__(17) && !(SPECIES in C))$.setDesc(C, SPECIES, {\n    configurable: true,\n    get: function(){ return this; }\n  });\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.species.js\n ** module id = 67\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.species.js?");
+
+/***/ },
+/* 68 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("var global    = __webpack_require__(11)\r\n  , macrotask = __webpack_require__(69).set\r\n  , Observer  = global.MutationObserver || global.WebKitMutationObserver\r\n  , process   = global.process\r\n  , head, last, notify;\r\n\r\nfunction flush(){\r\n  while(head){\r\n    head.fn.call(); // <- currently we use it only for Promise - try / catch not required\r\n    head = head.next;\r\n  } last = undefined;\r\n}\r\n\r\n// Node.js\r\nif(__webpack_require__(38)(process) == 'process'){\r\n  notify = function(){\r\n    process.nextTick(flush);\r\n  };\r\n// browsers with MutationObserver\r\n} else if(Observer){\r\n  var toggle = 1\r\n    , node   = document.createTextNode('');\r\n  new Observer(flush).observe(node, {characterData: true}); // eslint-disable-line no-new\r\n  notify = function(){\r\n    node.data = toggle = -toggle;\r\n  };\r\n// for other environments - macrotask based on:\r\n// - setImmediate\r\n// - MessageChannel\r\n// - window.postMessag\r\n// - onreadystatechange\r\n// - setTimeout\r\n} else {\r\n  notify = function(){\r\n    // strange IE + webpack dev server bug - use .call(global)\r\n    macrotask.call(global, flush);\r\n  };\r\n}\r\n\r\nmodule.exports = function asap(fn){\r\n  var task = {fn: fn, next: undefined};\r\n  if(last)last.next = task;\r\n  if(!head){\r\n    head = task;\r\n    notify();\r\n  } last = task;\r\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.microtask.js\n ** module id = 68\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.microtask.js?");
+
+/***/ },
+/* 69 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("'use strict';\nvar ctx                = __webpack_require__(28)\n  , invoke             = __webpack_require__(70)\n  , html               = __webpack_require__(71)\n  , cel                = __webpack_require__(72)\n  , global             = __webpack_require__(11)\n  , process            = global.process\n  , setTask            = global.setImmediate\n  , clearTask          = global.clearImmediate\n  , MessageChannel     = global.MessageChannel\n  , counter            = 0\n  , queue              = {}\n  , ONREADYSTATECHANGE = 'onreadystatechange'\n  , defer, channel, port;\nvar run = function(){\n  var id = +this;\n  if(queue.hasOwnProperty(id)){\n    var fn = queue[id];\n    delete queue[id];\n    fn();\n  }\n};\nvar listner = function(event){\n  run.call(event.data);\n};\n// Node.js 0.9+ & IE10+ has setImmediate, otherwise:\nif(!setTask || !clearTask){\n  setTask = function setImmediate(fn){\n    var args = [], i = 1;\n    while(arguments.length > i)args.push(arguments[i++]);\n    queue[++counter] = function(){\n      invoke(typeof fn == 'function' ? fn : Function(fn), args);\n    };\n    defer(counter);\n    return counter;\n  };\n  clearTask = function clearImmediate(id){\n    delete queue[id];\n  };\n  // Node.js 0.8-\n  if(__webpack_require__(38)(process) == 'process'){\n    defer = function(id){\n      process.nextTick(ctx(run, id, 1));\n    };\n  // Browsers with MessageChannel, includes WebWorkers\n  } else if(MessageChannel){\n    channel = new MessageChannel;\n    port    = channel.port2;\n    channel.port1.onmessage = listner;\n    defer = ctx(port.postMessage, port, 1);\n  // Browsers with postMessage, skip WebWorkers\n  // IE8 has postMessage, but it's sync & typeof its postMessage is 'object'\n  } else if(global.addEventListener && typeof postMessage == 'function' && !global.importScript){\n    defer = function(id){\n      global.postMessage(id + '', '*');\n    };\n    global.addEventListener('message', listner, false);\n  // IE8-\n  } else if(ONREADYSTATECHANGE in cel('script')){\n    defer = function(id){\n      html.appendChild(cel('script'))[ONREADYSTATECHANGE] = function(){\n        html.removeChild(this);\n        run.call(id);\n      };\n    };\n  // Rest old browsers\n  } else {\n    defer = function(id){\n      setTimeout(ctx(run, id, 1), 0);\n    };\n  }\n}\nmodule.exports = {\n  set:   setTask,\n  clear: clearTask\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.task.js\n ** module id = 69\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.task.js?");
+
+/***/ },
+/* 70 */
+/***/ function(module, exports) {
+
+	eval("// fast apply, http://jsperf.lnkit.com/fast-apply/5\nmodule.exports = function(fn, args, that){\n  var un = that === undefined;\n  switch(args.length){\n    case 0: return un ? fn()\n                      : fn.call(that);\n    case 1: return un ? fn(args[0])\n                      : fn.call(that, args[0]);\n    case 2: return un ? fn(args[0], args[1])\n                      : fn.call(that, args[0], args[1]);\n    case 3: return un ? fn(args[0], args[1], args[2])\n                      : fn.call(that, args[0], args[1], args[2]);\n    case 4: return un ? fn(args[0], args[1], args[2], args[3])\n                      : fn.call(that, args[0], args[1], args[2], args[3]);\n  } return              fn.apply(that, args);\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.invoke.js\n ** module id = 70\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.invoke.js?");
+
+/***/ },
+/* 71 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("module.exports = __webpack_require__(11).document && document.documentElement;\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.html.js\n ** module id = 71\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.html.js?");
+
+/***/ },
+/* 72 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("var isObject = __webpack_require__(33)\n  , document = __webpack_require__(11).document\n  // in old IE typeof document.createElement is 'object'\n  , is = isObject(document) && isObject(document.createElement);\nmodule.exports = function(it){\n  return is ? document.createElement(it) : {};\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.dom-create.js\n ** module id = 72\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.dom-create.js?");
+
+/***/ },
+/* 73 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("var $redef = __webpack_require__(13);\nmodule.exports = function(target, src){\n  for(var key in src)$redef(target, key, src[key]);\n  return target;\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.mix.js\n ** module id = 73\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.mix.js?");
+
+/***/ },
+/* 74 */
+/***/ function(module, exports) {
+
+	eval("\"use strict\";\n\nexports[\"default\"] = function (obj) {\n  return obj && obj.__esModule ? obj : {\n    \"default\": obj\n  };\n};\n\nexports.__esModule = true;\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/helpers/interop-require-default.js\n ** module id = 74\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/helpers/interop-require-default.js?");
+
+/***/ },
+/* 75 */
+/***/ function(module, exports) {
+
+	eval("\"use strict\";\n\nexports[\"default\"] = function (obj) {\n  if (obj && obj.__esModule) {\n    return obj;\n  } else {\n    var newObj = {};\n\n    if (obj != null) {\n      for (var key in obj) {\n        if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key];\n      }\n    }\n\n    newObj[\"default\"] = obj;\n    return newObj;\n  }\n};\n\nexports.__esModule = true;\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/helpers/interop-require-wildcard.js\n ** module id = 75\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/helpers/interop-require-wildcard.js?");
+
+/***/ },
+/* 76 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("'use strict';\n\nObject.defineProperty(exports, '__esModule', {\n  value: true\n});\n\nvar _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();\n\nfunction _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }\n\nfunction _defaults(obj, defaults) { var keys = Object.getOwnPropertyNames(defaults); for (var i = 0; i < keys.length; i++) { var key = keys[i]; var value = Object.getOwnPropertyDescriptor(defaults, key); if (value && value.configurable && obj[key] === undefined) { Object.defineProperty(obj, key, value); } } return obj; }\n\nfunction _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }\n\nvar Tast = (function () {\n  function Tast(state) {\n    _classCallCheck(this, Tast);\n\n    this.state = state || [];\n  }\n\n  _createClass(Tast, [{\n    key: 'listen',\n    value: function listen() {\n      var _this = this;\n\n      var elm = arguments[0] === undefined ? window : arguments[0];\n\n      var handleKey = function handleKey(e) {\n        _this.state[e.which] = e.type === 'keydown';\n      };\n\n      elm.addEventListener('keydown', handleKey);\n      elm.addEventListener('keyup', handleKey);\n\n      return this;\n    }\n  }, {\n    key: 'down',\n    value: function down(id) {\n      if (Array.isArray(id)) {\n        for (var i = 0; i < id.length; i++) {\n          if (this.state[id[i]] === true) {\n            return true;\n          }\n        }\n      }\n\n      return !!this.state[id];\n    }\n  }, {\n    key: 'up',\n    value: function up(id) {\n      return !this.down(id);\n    }\n  }, {\n    key: 'save',\n    value: function save() {\n      return new Tast(this.state.slice());\n    }\n  }, {\n    key: 'reset',\n    value: function reset() {\n      this.state = [];\n    }\n  }]);\n\n  return Tast;\n})();\n\nexports['default'] = Tast;\nvar KEYS = {\n  UP: 38, DOWN: 40, LEFT: 37, RIGHT: 39,\n\n  SPACE: 32,\n\n  A: 65, B: 66, C: 67, D: 68,\n  E: 69, F: 70, G: 71, H: 72,\n  I: 73, J: 74, K: 75, L: 76,\n  M: 77, N: 78, O: 79, P: 80,\n  Q: 81, R: 82, S: 83, T: 84,\n  U: 85, V: 86, W: 87, X: 88,\n  Y: 89, Z: 90\n};\n\nexports.KEYS = KEYS;\n\nvar _KeyLayout = __webpack_require__(77);\n\n_defaults(exports, _interopRequireWildcard(_KeyLayout));\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/tast/lib/tast.js\n ** module id = 76\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/tast/lib/tast.js?");
+
+/***/ },
+/* 77 */
+/***/ function(module, exports) {
+
+	eval("\"use strict\";\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\nexports.KeyLayout = KeyLayout;\n\nfunction KeyLayout(state, options) {\n  var layout = {\n    setState: function setState(newState) {\n      state = newState;\n    }\n  };\n\n  var _loop = function (key) {\n    Object.defineProperty(layout, key, {\n      get: function get() {\n        return state.down(options[key]);\n      }\n    });\n  };\n\n  for (var key in options) {\n    _loop(key);\n  }\n\n  return layout;\n}\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/tast/lib/KeyLayout.js\n ** module id = 77\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/tast/lib/KeyLayout.js?");
+
+/***/ },
+/* 78 */
+/***/ function(module, exports) {
+
+	eval("'use strict';\n\nexports.__esModule = true;\nexports['default'] = tegn;\nexports.init = init;\nvar cache = {};\n\nfunction tegn(ctx, state) {\n  var offset = arguments.length <= 2 || arguments[2] === undefined ? [0, 0] : arguments[2];\n  var scale = arguments.length <= 3 || arguments[3] === undefined ? [1, 1] : arguments[3];\n  var pixelate = arguments.length <= 4 || arguments[4] === undefined ? false : arguments[4];\n\n  if (!state) return false;\n\n  if (Array.isArray(state)) {\n    state.map(function (child) {\n      return tegn(ctx, child, offset);\n    });\n\n    return state;\n  }\n\n  var p = !(state.pixelate !== void 0 ? state.pixelate : pixelate);\n\n  ctx['imageSmoothingEnabled'] = p;\n  ctx['mozImageSmoothingEnabled'] = p;\n  ctx['oImageSmoothingEnabled'] = p;\n  ctx['webkitImageSmoothingEnabled'] = p;\n  ctx['msImageSmoothingEnabled'] = p;\n\n  var s = state.scale || [1, 1];\n\n  var sx = scale[0] * (s[0] || 1);\n  var sy = scale[1] * (s[1] || 1);\n\n  var x = offset[0] + (state.x || 0) * sx;\n  var y = offset[1] + (state.y || 0) * sy;\n\n  if (x < ctx.canvas.width && y < ctx.canvas.height) {\n    if (state.fill) {\n      if (state.fill === 'clear') {\n        ctx.clearRect(x, y, state.width * sx || 0, state.height * sy || 0);\n      } else {\n        if (ctx.fillStyle !== state.fill) {\n          ctx.fillStyle = state.color || state.fill;\n        }\n        ctx.fillRect(x, y, state.width * sx || 0, state.height * sy || 0);\n      }\n    }\n\n    if (state.stroke) {\n      ctx.strokeStyle = state.stroke;\n      ctx.strokeRect(x, y, state.width * sx || 0, state.height * sy || 0);\n    }\n\n    if (state.src) {\n      var img = image(state.src);\n\n      if (state.width && state.height) {\n        ctx.drawImage(image(state.src), x, y, state.width * sx, state.height * sy);\n      } else {\n        ctx.drawImage(image(state.src), x, y, img.width * sx, img.height * sy);\n      }\n    }\n\n    if (state.text) {\n      if (state.font) {\n        ctx.font = state.font;\n      }\n      if (state.color) {\n        ctx.fillStyle = state.color;\n      }\n\n      ctx.fillText(state.text, x, y);\n    }\n  }\n\n  if (state.children) {\n    var len = state.children.length;\n\n    for (var i = 0; i < len; i++) {\n      tegn(ctx, state.children[i], [x, y], [sx, sy], !p);\n    }\n  }\n\n  return state;\n}\n\nfunction init(width, height) {\n  var elm = arguments.length <= 2 || arguments[2] === undefined ? document.body : arguments[2];\n\n  var canvas = document.createElement('canvas');\n\n  canvas.width = width;\n  canvas.height = height;\n\n  document.body.appendChild(canvas);\n\n  var ctx = canvas.getContext('2d');\n\n  ctx.offscreenCanvas = document.createElement('canvas');\n  ctx.offscreenCtx = ctx.offscreenCanvas.getContext('2d');\n\n  ctx.offscreenCanvas.width = width;\n  ctx.offscreenCanvas.height = height;\n\n  return ctx;\n}\n\nfunction image(src) {\n  if (typeof src !== 'string') return src;\n\n  if (cache[src]) return cache[src];\n\n  var img = document.createElement('img');\n  img.src = src;\n\n  return cache[src] = img;\n}\n\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/tegn/lib/index.js\n ** module id = 78\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/tegn/lib/index.js?");
+
+/***/ },
+/* 79 */
+/***/ function(module, exports) {
+
+	eval("\"use strict\";\n\n// slicr :: (Image, (Object|Number)) -> [Image]\nexports[\"default\"] = slicr;\n\n\n// slicr :: (String, (Object|Number)) -> Promise([Image])\nexports.async = async;\n\n\n// slicrAll :: [Object] -> Promise([[Image]])\nexports.slicrAll = slicrAll;\nfunction slicr(img, ops) {\n  if (typeof img == \"string\") {\n    console.error(\"slicr is now synchronous. That means you will have to pass a image object instead of a string. For previous results use slicr.async instead.\");\n    return async(img, ops);\n  }\n\n  if (!img.width) {\n    throw new Error(\"Image is not yet loaded, or has a width of 0\");\n  }\n\n  if (typeof ops == \"number\") {\n    ops = { slices: ops };\n  }\n\n  var width = ops.slices ? Math.floor(img.width / ops.slices) : ops.width || img.width;\n\n  var height = ops.height || img.height;\n\n  var hslices = ops.slices || Math.floor(img.width / width);\n  var vslices = Math.floor(img.height / height);\n\n  var canvases = new Array(vslices * hslices).join(\",\").split(\",\").map(function (_, i) {\n    var canvas = document.createElement(\"canvas\");\n    var ctx = canvas.getContext(\"2d\");\n\n    canvas.width = width;\n    canvas.height = height;\n\n    var x = i % hslices * width;\n    var y = Math.floor(i / hslices) * height;\n\n    ctx.drawImage(img, x, y, width, height, 0, 0, width, height);\n\n    return canvas;\n  });\n\n  return canvases;\n}function async(url, ops) {\n  return loadImage(url).then(function (img) {\n    return slicr(img, ops);\n  });\n}\n\nslicr.async = async;\n\n// loadImage :: String -> Promise(Image)\nfunction loadImage(url) {\n  var img = document.createElement(\"img\");\n  var didResolve = false;\n\n  return new Promise(function (resolve, reject) {\n    var notFound = setTimeout(function () {\n      if (didResolve) return;\n\n      reject(\"Error in loading image\");\n    }, 3000);;\n\n    img.addEventListener(\"load\", function () {\n      didResolve = true;\n\n      clearTimeout(notFound);\n\n      resolve(img);\n    });\n\n    img.src = url;\n  });\n}function slicrAll(arr) {\n  return Promise.all(arr.map(function (a) {\n    return slicr(a.src, a);\n  }));\n}\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/slicr/lib/slicr.js\n ** module id = 79\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/slicr/lib/slicr.js?");
+
+/***/ },
+/* 80 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("'use strict';\n\nvar _Promise = __webpack_require__(59)['default'];\n\nvar _interopRequireDefault = __webpack_require__(74)['default'];\n\nObject.defineProperty(exports, '__esModule', {\n  value: true\n});\n\nvar _tegn = __webpack_require__(78);\n\nvar _tegn2 = _interopRequireDefault(_tegn);\n\nvar _slicr = __webpack_require__(79);\n\nvar _slicr2 = _interopRequireDefault(_slicr);\n\nvar getImage = function getImage(img, i) {\n  switch (i) {\n    case '.':\n      return img[1];\n    default:\n      return img[0];\n  }\n};\n\nvar background = function background(img, tiles, layer) {\n  var canvas = document.createElement('canvas');\n  var ctx = canvas.getContext('2d');\n\n  var cols = 0;\n\n  var bg = layer.layout.map(function (row, y) {\n    var col = row.split('');\n\n    cols = Math.max(col.length, cols);\n\n    return col.map(function (tile, x) {\n      return {\n        x: x * 16,\n        y: (y - 1) * 16,\n\n        width: 16,\n        height: 16,\n\n        src: img[tiles[tile]]\n      };\n    });\n  }).reduce(function (a, b) {\n    return a.concat(b);\n  });\n\n  var value = false;\n\n  canvas.width = cols * 16;\n  canvas.height = layer.layout.length * 16;\n\n  (0, _tegn2['default'])(ctx, {\n    children: bg\n  });\n\n  return canvas;\n};\n\nvar getTileset = function getTileset(name) {\n  return _slicr2['default'].async(name, { width: 16, height: 16 });\n};\n\nvar create = function create(name) {\n  return load(name).then(function (level) {\n    return getTileset(level.tileset).then(function (tileset) {\n      return { level: level, tileset: tileset };\n    });\n  }).then(function (_ref) {\n    var level = _ref.level;\n    var tileset = _ref.tileset;\n\n    var layers = level.layers.map(function (layer) {\n      if (layer.prerender == void 0 || layer.prerender) {\n        return {\n          src: background(tileset, level.tiles, layer)\n        };\n      } else {\n        return {\n          children: layer.layout.map(function (row, y) {\n            var plzz = row.split('').map(function (tile, x) {\n              return {\n                x: x * 16, y: y * 16,\n                src: tileset[level.tiles[tile]]\n              };\n            });\n\n            if (!plzz.length) return false;\n\n            return plzz;\n          }).filter(function (a) {\n            return a;\n          }).reduce(function (a, b) {\n            return a.concat(b);\n          }).filter(function (a) {\n            return a.src;\n          })\n        };\n      }\n    });\n\n    var out = function out(middle) {\n\n      return [layers[2], {\n        children: middle.concat(layers[1].children).sort(function (a, b) {\n          return a.y - b.y;\n        })\n      }, {\n        y: -5,\n        children: [layers[0]]\n      }];\n    };\n\n    out.tileset = tileset;\n\n    return out;\n  });\n};\n\nvar fetchLevel = function fetchLevel(name) {\n  return fetch('levels/' + name + '.json').then(function (res) {\n    return res.text();\n  });\n};\n\nvar load = function load(name) {\n  return new _Promise(function (res) {\n    var item = 'level-' + name;\n    var localItem = localStorage.getItem(item);\n\n    if (false) {\n      console.log('getting from localStorage');\n\n      return res(JSON.parse(localItem));\n    } else {\n      console.log('fetching!');\n\n      return res(fetchLevel(name).then(function (lvl) {\n        localStorage.setItem(item, lvl);\n        return JSON.parse(lvl);\n      }));\n    }\n  });\n};\n\nexports.background = background;\nexports.load = load;\nexports.create = create;\n\n/*****************\n ** WEBPACK FOOTER\n ** ./lib/Level.js\n ** module id = 80\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./lib/Level.js?");
+
+/***/ },
+/* 81 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("\"use strict\";\n\nvar _extends = __webpack_require__(82)[\"default\"];\n\nvar _toConsumableArray = __webpack_require__(1)[\"default\"];\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\nexports.create = create;\nexports.update = update;\nexports.follow = follow;\n\nfunction create(img) {\n  var x = arguments.length <= 1 || arguments[1] === undefined ? 0 : arguments[1];\n  var y = arguments.length <= 2 || arguments[2] === undefined ? 0 : arguments[2];\n\n  return {\n    image: img,\n    time: Math.random() * 10,\n    right: 0,\n    animate: false,\n    prev: [],\n    offset: 0,\n\n    x: x, y: y,\n    src: img[0]\n  };\n}\n\n;\n\nvar speed = 1;\n\nfunction update(npc, move) {\n  npc.time += 0.2;\n  npc.src = npc.animate ? npc.image[Math.floor(npc.time) % 4 + npc.right + npc.offset] : npc.image[npc.right + npc.offset];\n\n  if (move && (move.x || move.y)) {\n    npc.x += move.x * speed;\n    npc.y += move.y * speed;\n\n    npc.right = move.x == -1 ? 4 : move.x == 1 ? 0 : npc.right;\n\n    npc.animate = true;\n    npc.prev = [_extends({}, npc)].concat(_toConsumableArray(npc.prev)).slice(0, limit + 1);\n  } else {\n    npc.animate = false;\n  }\n}\n\nvar limit = 10;\n\nfunction follow(a, b) {\n  b.animate = a.animate;\n\n  if (a.prev[limit]) {\n    var pp = a.prev[limit];\n\n    if (Math.round(pp.x * 2) == Math.round(b.x * 2) && Math.round(pp.y * 2) == Math.round(b.y * 2)) {\n      return;\n    }\n\n    b.x = pp.x;\n    b.y = pp.y - .1;\n    b.right = pp.right;\n\n    b.prev = [_extends({}, b)].concat(_toConsumableArray(b.prev)).slice(0, limit + 1);\n  }\n}\n\n/*****************\n ** WEBPACK FOOTER\n ** ./lib/NPC.js\n ** module id = 81\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./lib/NPC.js?");
+
+/***/ },
+/* 82 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("\"use strict\";\n\nvar _Object$assign = __webpack_require__(83)[\"default\"];\n\nexports[\"default\"] = _Object$assign || function (target) {\n  for (var i = 1; i < arguments.length; i++) {\n    var source = arguments[i];\n\n    for (var key in source) {\n      if (Object.prototype.hasOwnProperty.call(source, key)) {\n        target[key] = source[key];\n      }\n    }\n  }\n\n  return target;\n};\n\nexports.__esModule = true;\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/helpers/extends.js\n ** module id = 82\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/helpers/extends.js?");
+
+/***/ },
+/* 83 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("module.exports = { \"default\": __webpack_require__(84), __esModule: true };\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/core-js/object/assign.js\n ** module id = 83\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/core-js/object/assign.js?");
+
+/***/ },
+/* 84 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("__webpack_require__(85);\nmodule.exports = __webpack_require__(12).Object.assign;\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/fn/object/assign.js\n ** module id = 84\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/fn/object/assign.js?");
+
+/***/ },
+/* 85 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("// 19.1.3.1 Object.assign(target, source)\nvar $def = __webpack_require__(10);\n$def($def.S, 'Object', {assign: __webpack_require__(86)});\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/es6.object.assign.js\n ** module id = 85\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/es6.object.assign.js?");
+
+/***/ },
+/* 86 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("// 19.1.2.1 Object.assign(target, source, ...)\nvar toObject = __webpack_require__(30)\n  , IObject  = __webpack_require__(48)\n  , enumKeys = __webpack_require__(50);\n/* eslint-disable no-unused-vars */\nmodule.exports = Object.assign || function assign(target, source){\n/* eslint-enable no-unused-vars */\n  var T = toObject(target)\n    , l = arguments.length\n    , i = 1;\n  while(l > i){\n    var S      = IObject(arguments[i++])\n      , keys   = enumKeys(S)\n      , length = keys.length\n      , j      = 0\n      , key;\n    while(length > j)T[key = keys[j++]] = S[key];\n  }\n  return T;\n};\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/babel-runtime/~/core-js/library/modules/$.assign.js\n ** module id = 86\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/babel-runtime/~/core-js/library/modules/$.assign.js?");
+
+/***/ },
+/* 87 */
+/***/ function(module, exports) {
+
+	eval("\"use strict\";\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\nexports.create = create;\nexports.update = update;\n\nfunction create() {\n  return {\n    x: 0,\n    y: 0\n  };\n}\n\nfunction update(cam, dest) {\n  var moveX = Math.min(0, ~ ~dest.x) - cam.x;\n  var moveY = Math.min(0, ~ ~dest.y) - cam.y;\n\n  if (Math.abs(moveX) > 4) {\n    cam.x += moveX > 0 ? 1 : -1;\n  }\n\n  if (Math.abs(moveY) > 4) {\n    cam.y += moveY > 0 ? 1 : -1;\n  }\n\n  cam.x = Math.min(0, cam.x);\n  cam.y = Math.min(0, cam.y);\n}\n\n/*****************\n ** WEBPACK FOOTER\n ** ./lib/Camera.js\n ** module id = 87\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./lib/Camera.js?");
+
+/***/ },
+/* 88 */
+/***/ function(module, exports) {
+
+	eval("'use strict';\n\nObject.defineProperty(exports, '__esModule', {\n  value: true\n});\nexports.create = create;\nexports.update = update;\n\nfunction create(tiles, select) {\n  var options = {\n    x: 1,\n    y: 1,\n\n    //scale: [5, 5],\n\n    children: tiles.map(function (tile, i) {\n      return {\n        x: i * (16 + 2),\n        src: tile\n      };\n    })\n  };\n\n  return {\n    tiles: void 0,\n\n    x: 10,\n    y: 10,\n\n    children: [{\n      children: [{\n        x: 90 * select,\n        y: 0,\n\n        width: 90 / 5, height: 90 / 5,\n\n        fill: '#3ee'\n      }, options]\n    }]\n  };\n}\n\nfunction update(ui) {}\n\n/*****************\n ** WEBPACK FOOTER\n ** ./lib/UI.js\n ** module id = 88\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./lib/UI.js?");
+
+/***/ },
+/* 89 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("'use strict';\n\nvar _interopRequireWildcard = __webpack_require__(75)['default'];\n\nObject.defineProperty(exports, '__esModule', {\n  value: true\n});\nexports['default'] = dialogue;\n\nvar _dialogues = __webpack_require__(90);\n\nvar dialogues = _interopRequireWildcard(_dialogues);\n\nvar _2 = __webpack_require__(92);\n\nfunction dialogue() {\n  var _arguments = arguments;\n  var _again = true;\n\n  _function: while (_again) {\n    state = action = d = v = b = undefined;\n    var state = _arguments.length <= 0 || _arguments[0] === undefined ? {\n      active: false,\n      story: false,\n      current: false,\n      next: false,\n      participants: [],\n      selection: 0,\n      time: 0,\n      offsetTop: 0\n    } : _arguments[0];\n    _again = false;\n    var action = _arguments.length <= 1 || _arguments[1] === undefined ? {} : _arguments[1];\n\n    switch (action.type) {\n\n      case 'begin':\n        var d = dialogues[action.name];\n        var v = d.content(d.left.map(function (_, i) {\n          return (0, _2.Person)(i);\n        }), d.right.map(function (_, i) {\n          return (0, _2.Person)(i + d.left.length);\n        }));\n\n        state.active = true;\n        state.story = v;\n        state.participants = [d.left, d.right];\n\n        _arguments = [state, {\n          type: 'progress', choice: 0\n        }];\n        _again = true;\n        continue _function;\n\n      case 'progress':\n        if (!state.active) return state;\n\n        if (!state.story) {\n          state.active = false;\n\n          return state;\n        }\n\n        var b = state.story.progress(state.selection);\n\n        console.log(b);\n\n        state.selection = 0;\n        state.story = b.story;\n        state.time = 0;\n        state.active = !!b.current;\n        state.current = b.current;\n\n        return state;\n\n      case 'select':\n        if (state.current.choices) {\n          state.selection = Math.min(Math.max(0, action.n + state.selection), state.current.choices.length - 1);\n        }\n\n        return state;\n\n      case 'tick':\n        state.time += 1;\n\n        return state;\n    }\n\n    return state;\n  }\n}\n\nmodule.exports = exports['default'];\n\n/*****************\n ** WEBPACK FOOTER\n ** ./lib/Dialogue/state.js\n ** module id = 89\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./lib/Dialogue/state.js?");
+
+/***/ },
+/* 90 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("'use strict';\n\nvar _interopRequireDefault = __webpack_require__(74)['default'];\n\nObject.defineProperty(exports, '__esModule', {\n  value: true\n});\n\nvar _churchCoffee = __webpack_require__(91);\n\nvar _churchCoffee2 = _interopRequireDefault(_churchCoffee);\n\nvar _watermelonCoffee = __webpack_require__(96);\n\nvar _watermelonCoffee2 = _interopRequireDefault(_watermelonCoffee);\n\nexports.church = _churchCoffee2['default'];\nexports.watermelon = _watermelonCoffee2['default'];\n\n/*****************\n ** WEBPACK FOOTER\n ** ./dialogues/index.js\n ** module id = 90\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./dialogues/index.js?");
+
+/***/ },
+/* 91 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("var Person, Wrapper, action, asks, maybe, ref, says;\n\nref = __webpack_require__(92), says = ref.says, asks = ref.asks, maybe = ref.maybe, action = ref.action, Person = ref.Person, Wrapper = ref.Wrapper;\n\nmodule.exports = Wrapper(['boy', 'priest'], function(arg) {\n  var boy, c, priest, stealFish;\n  boy = arg[0], priest = arg[1];\n  stealFish = priest(says(\"FISH! Omg i luv fish! Can i have some!?!?\"));\n  c = priest(says(\"Aww.. Too bad, I know the best place to find fish tho!\")).then(boy(says(\"Are you serious?\"))).then(priest(says(\"Yes!\"))).then(boy(says(\"Can I change my mind? ;)\")));\n  return boy(says(\"Hello there!\")).then(priest(says(\"Why welcome son!\"))).then(boy(says(\"I've sined father!\"))).then(priest(asks(\"You have? Oh, that's too bad! What's the matter?\", priest(maybe(\"I've eaten 10 bananas\")).then(priest(asks(\"That's aright, nobody like bananas any way!\", maybe(\"Ah... okay... then I go back home\").then(action(\"game over\")), maybe(\"Ikr? Bananas are awful. I stole fish, no kidding now.\").then(stealFish)))), maybe(\"I've stolen fish\").then(stealFish)))).then(boy(says(\"You want to steal fish?\"))).then(priest(asks(\"YES! Will you teach me\", maybe(\"Well...\").then(priest(asks(\"Come on, please!\", maybe(\"Aright then...\").then(priest(says(\"WUHU! ADVENTURE LIES AHEAD!\"))), maybe(\"What the heck, come along!\").then(priest(says(\"WUHU! ADVENTURE LIES AHEAD!\")))))), maybe(\"No way! Not gonna happen!\").then(c)))).then(priest(says(\"Follow me! I know the greatest place to get the freashest fish!\"))).then(priest(says(\"Follow me! I know the greatest place to get the freashest fish!\")));\n});\n\n\n/*****************\n ** WEBPACK FOOTER\n ** ./dialogues/church.coffee\n ** module id = 91\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./dialogues/church.coffee?");
+
+/***/ },
+/* 92 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("'use strict';\n\nObject.defineProperty(exports, '__esModule', {\n  value: true\n});\nexports.Wrapper = Wrapper;\nexports.Dialogue = Dialogue;\nexports.says = says;\nexports.maybe = maybe;\nexports.asks = asks;\nexports.action = action;\nexports.Person = Person;\nvar _id = 0;\n\nfunction Wrapper(left, right, content) {\n  if (left === undefined) left = [];\n  if (right === undefined) right = [];\n\n  return { left: left, right: right, content: content };\n}\n\nfunction Dialogue(type, args) {\n  if (type === undefined) type = 'say';\n\n  var self = {\n    type: type, args: args,\n    next: false,\n    id: _id++,\n\n    then: function then(a) {\n      var out = Dialogue(self.type, self.args);\n      var nx = self;\n      var outNx = out;\n\n      while (nx.next) {\n        outNx.next = Dialogue(nx.next.type, nx.next.args);\n        outNx = outNx.next;\n\n        nx = nx.next;\n      }\n\n      outNx.next = a;\n\n      return out;\n    },\n\n    progress: function progress(i) {\n      switch (type) {\n        case 'say':\n          return {\n            story: self.next,\n            current: {\n              name: args.name,\n              type: type,\n              text: args.msg\n            }\n          };\n        case 'question':\n          return {\n            story: Dialogue('choice', args.choices).then(self.next),\n            current: {\n              name: args.name,\n              type: type,\n              choices: args.choices,\n              text: args.question\n            }\n          };\n        case 'choice':\n          console.log(args, i);\n\n          return {\n            story: args[i].next.then(self.next),\n            current: {\n              name: args.name,\n              type: type,\n              text: args[i].text\n            }\n          };\n        case 'action':\n          return {\n            story: false\n          };\n      }\n\n      return self.next;\n    }\n  };\n\n  return self;\n}\n\nfunction says(msg) {\n  //console.log(...args, 'say');\n\n  return Dialogue('say', { msg: msg });\n}\n\nfunction maybe(text) {\n  var out = {\n    then: function then(next) {\n      var wup = { next: next, text: text };\n\n      wup.name = out.name;\n\n      return wup;\n    }\n  };\n\n  return out;\n}\n\nfunction asks() {\n  for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {\n    args[_key] = arguments[_key];\n  }\n\n  return Dialogue('question', {\n    question: args[0],\n    choices: args.slice(1)\n  });\n}\n\nfunction action(str) {\n  return Dialogue('action', str);\n}\n\nfunction Person(name) {\n  return function (a) {\n    var b = a;\n    if (b.args) {\n      b.args.name = name;\n    } else {\n      b.name = name;\n    }\n\n    return b;\n  };\n}\n\nvar awnsers = says;\nexports.awnsers = awnsers;\n\nvar _view = __webpack_require__(93);\n\nObject.defineProperty(exports, 'view', {\n  enumerable: true,\n  get: function get() {\n    return _view.view;\n  }\n});\n\n/*****************\n ** WEBPACK FOOTER\n ** ./lib/Dialogue/index.js\n ** module id = 92\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./lib/Dialogue/index.js?");
+
+/***/ },
+/* 93 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("'use strict';\n\nvar _toConsumableArray = __webpack_require__(1)['default'];\n\nvar _interopRequireDefault = __webpack_require__(74)['default'];\n\nObject.defineProperty(exports, '__esModule', {\n  value: true\n});\nexports.view = view;\n\nvar _drawHelpers = __webpack_require__(94);\n\nvar _Text = __webpack_require__(95);\n\nvar _Text2 = _interopRequireDefault(_Text);\n\nvar gameWidth = 151;\n\nvar cache = {};\n\nvar scale = .6;\n\nfunction speaker(src, right, talking, ani, i) {\n  if (right === undefined) right = false;\n\n  var offset = talking ? Math.round(-(Math.sin(ani / 3) + 1) * 1) * .5 : 0;\n\n  return {\n    x: right ? 20 + i * 100 : -2 + i * 5,\n    y: offset - 11,\n\n    scale: [3, 3],\n\n    src: src[right ? 4 : 0]\n  };\n}\n\nfunction view(assets, /* dialogue */dialogue) {\n  var participants = dialogue.participants;\n  var current = dialogue.current;\n  var selection = dialogue.selection;\n  var time = dialogue.time;\n\n  var q = current.type == 'question';\n\n  var totalHeight = 0;\n\n  var h = function h(amt) {\n    totalHeight += amt;\n    return amt;\n  };\n\n  var speed = 2;\n  var message = current.text.substr(0, time / speed);\n\n  var content = [].concat(_toConsumableArray(participants[0].map(function (p, i) {\n    return speaker(assets[p], false, current.name == i, time, i);\n  })), _toConsumableArray(participants[1].map(function (p, i) {\n    return speaker(assets[p], true, current.name == i + participants[0].length, time, i);\n  })), [(0, _drawHelpers.rect)(-2, 0, (gameWidth - 4) / scale, h(Math.ceil(Math.max(1, message.length) / 40) * 7), 'cornflowerblue'), current.choices ? {\n    y: 2,\n\n    children: current.choices.map(function (c, i) {\n      var height = Math.ceil(c.text.length / 40) * 7;\n\n      var textY = totalHeight;\n\n      return {\n        children: [{\n          x: -2,\n          y: totalHeight - 2,\n\n          width: (gameWidth - 4) / scale,\n          height: h(height),\n\n          fill: i == 0 ? 'yellow' : 'red'\n        }, (0, _Text2['default'])(0, textY - 1, c.text), selection == i && {\n          src: assets.arrow,\n          x: (gameWidth - 4) / scale + Math.round(Math.cos((time + 2) / 5)),\n          y: textY - 2\n        }]\n      };\n    })\n  } : {}, (0, _Text2['default'])(0, 1, message)]);\n\n  dialogue.offsetTop += dialogue.offsetTop < totalHeight ? 1 : dialogue.offsetTop > totalHeight ? -1 : 0;\n\n  return {\n    x: 4,\n    y: 112 - Math.max(0, dialogue.offsetTop * scale + 0 - 7),\n\n    children: [{\n      scale: [scale, scale],\n      children: content\n    }]\n  };\n}\n\n/*****************\n ** WEBPACK FOOTER\n ** ./lib/Dialogue/view.js\n ** module id = 93\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./lib/Dialogue/view.js?");
+
+/***/ },
+/* 94 */
+/***/ function(module, exports) {
+
+	eval("\"use strict\";\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\nexports.rect = rect;\nexports.img = img;\n\nfunction rect(x, y, width, height, fill) {\n  return {\n    x: x, y: y, width: width, height: height, fill: fill\n  };\n}\n\nfunction img(x, y, src) {\n  return {\n    x: x, y: y, src: src\n  };\n}\n\n/*****************\n ** WEBPACK FOOTER\n ** ./lib/drawHelpers.js\n ** module id = 94\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./lib/drawHelpers.js?");
+
+/***/ },
+/* 95 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("'use strict';\n\nvar _interopRequireDefault = __webpack_require__(74)['default'];\n\nObject.defineProperty(exports, '__esModule', {\n  value: true\n});\nexports['default'] = Text;\n\nvar _slicr = __webpack_require__(79);\n\nvar _slicr2 = _interopRequireDefault(_slicr);\n\nvar limit = 40;\nvar font = [];\n_slicr2['default'].async('assets/font3.png', { width: 5, height: 5 }).then(function (f) {\n  return font = f;\n});\n\nfunction Text(x, y) {\n  var text = arguments.length <= 2 || arguments[2] === undefined ? '' : arguments[2];\n\n  var reduce = 0;\n\n  var imgs = text.toLowerCase().split('').map(function (char, i) {\n    if (char == ' ' && i % limit == 0) {\n      reduce += 1;\n\n      return false;\n    }\n\n    return {\n      x: (i - reduce) % limit * 6,\n      y: 6 * Math.floor((i - reduce) / limit),\n      src: font[letters[char]] || font[Math.floor(Math.random() * 44) % 44]\n    };\n  }).filter(function (a) {\n    return a;\n  });\n\n  return {\n    x: x,\n    y: y,\n\n    children: imgs\n  };\n}\n\nvar letters = {\n  a: 0, b: 1, c: 2, d: 3, e: 4, f: 5, g: 6, h: 7, i: 8, j: 9, k: 10, l: 11,\n  m: 12, n: 13, o: 14, p: 15, q: 16, r: 17, s: 18, t: 19, u: 20, v: 21, w: 22,\n  x: 23, y: 24, z: 25, '?': 26, '!': 27, ':': 28, '1': 29, '2': 30, '3': 31,\n  '4': 32, '5': 33, '6': 34, '7': 35, '8': 36, '9': 37, '0': 38, ' ': 39,\n  '.': 40, ',': 41, \"'\": 42, '-': 43, '(': 44, ')': 45\n};\nmodule.exports = exports['default'];\n\n/*****************\n ** WEBPACK FOOTER\n ** ./lib/Text.js\n ** module id = 95\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./lib/Text.js?");
+
+/***/ },
+/* 96 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("var Person, Wrapper, action, asks, maybe, ref, says;\n\nref = __webpack_require__(92), says = ref.says, asks = ref.asks, maybe = ref.maybe, action = ref.action, Person = ref.Person, Wrapper = ref.Wrapper;\n\nmodule.exports = Wrapper(['boy', 'priest'], ['watermelon'], function(arg, arg1) {\n  var OlofmeisterSucks, blowMind, boy, dramaticStory, eatWaterMelon, priest, shittyFacts, talkToWaterMelon, toEatOrNotToEat, waterMelonHatesYou, watermStory4real, watermelon, watermelonAsks, watermelonIn, watermelonOut, watermelonRuns, watermelonStories;\n  boy = arg[0], priest = arg[1];\n  watermelon = arg1[0];\n  watermelonIn = watermelon(says(\"Okay then, I follow you\")).then(action(\"Watermelon follows you from this moment, his wisdom gives you an entirely different view from history and time so your timer goes down half\"));\n  watermelonOut = watermelon(says(\"I'm outta here\")).then(action(\"Watermelon runs away, no boosts\"));\n  watermelonAsks = watermelon(asks(\"Oh…I think I can trust you…I will join you, but you have to promise that you won’t eat me.\", maybe(\"You look tasty, ain’t gonna promise u dat.\").then(watermelonOut), maybe(\"Of course we won’t eat a wise watermelon like you.\").then(watermelonIn)));\n  watermelonRuns = watermelon(says(\"Humans are evil indeed, I better run before you eat me\")).then(action(\"Watermelon runs aways\"));\n  dramaticStory = watermelon(says(\"A human ate a watermelon.\")).then(watermelon(says(\"We don’t remember how or who, but suddenly all humans started to eat watermelons (apparently we are super tasty).\"))).then(watermelon(says(\"Our great kingdom came down. As humans were eating us, they also conquered everything we owned and stole our gods and religions...\"))).then(watermelon(says(\"... even the Golden Tower and its secrets...\"))).then(watermelon(says(\"We were devastated, so we came up with an idea: to be quite is to be hidden.\"))).then(watermelon(says(\"We stopped talking and were hidden in the ground for ages, but, as generations went by, the most of us forgot how to speak.\"))).then(watermelon(says(\"Humans were really rich and wise because of our goods and knowledge, but then they started to lose it all, as they always do.\"))).then(watermelon(says(\"They fought in senseless wars and as the battles were getting rougher they destroyed all that they had stolen from us...\"))).then(watermelon(asks(\"...so our great kingdom was finally forgotten and lost in time...\", maybe(\"I don't believe that story, humans are no evil\").then(watermelonRuns), maybe(\"Aw...that is sad, we humans are evil indeed, but this priest and me...no. We are good people in search for fish, would you join us to share your wisdom?\").then(watermelonAsks))));\n  watermStory4real = watermelon(says(\"A long time ago we were millions. stik loves poop. Millions of wise watermelons living in peace with other wise species and so on.\")).then(watermelon(says(\"We built palaces, castles and in the northern lands of the Atlantis we built our huge and precious Golden Tower.\"))).then(watermelon(says(\"It was a tower so big that some days you could touch the clouds and sense the fresh air as birds do.\"))).then(watermelon(says(\"That was the more beautiful thing about the watermelon kingdom, a gigantic tower made of gold.\"))).then(watermelon(asks(\"But, as we were confident, we didn't notice the little groups of humans that were reuniting all around the world, and the saddest thing happened.\", maybe(\"Tired already, gonna eat you up!\").then(eatWaterMelon), maybe(\"What happened?\").then(dramaticStory))));\n  shittyFacts = watermelon(says(\"They say there is 24 hours in a day, but it is actually false.\")).then(watermelon(says(\"The Earth spins on its axis for exactly 23 hours and 56 minutes.\"))).then(watermelon(says(\"But we add 4 extra minutes.\"))).then(watermelon(says(\"The reason humans do that is because the distance in which you have orbited the sun is so great that it takes a little extra time for you just to face the sun again\"))).then(priest(says(\"Aw, interesting\"))).then(watermelon(says(\"Well, shitty facts leads to shitty results, so c u boyz\"))).then(action(\"Watermelon quest ends, no boosts\"));\n  watermelonStories = watermelon(asks(\"Well, you could choose the easy path and ask about a random rare fact from earth or…you could ask about the forgotten watermelon kingdom...only if you are brave enough…\", maybe(\"Lol I wanna know a random rare fact pls\").then(shittyFacts), maybe(\"Oh my god, what is the forgotten watermelon kingdom?\").then(watermStory4real)));\n  OlofmeisterSucks = watermelon(asks(\"That is not the right question, human. You should ask yourself what kind of knowledge will you be ready to handle without driving yourself mad.\", maybe(\"What a cocky watermelon, Imma eat you up\").then(eatWaterMelon), maybe(\"Oh, that's right, could you suggest something?\").then(watermelonStories)));\n  waterMelonHatesYou = watermelon(says(\"YOU WENT TOO FAR HUMANS\")).then(action(\"Watermelon quest ends, watermelon won't talk to you again\"));\n  blowMind = watermelon(asks(\"Of course you could, I am the wise watermelon\", maybe(\"Wait a minute. You just said some lines back that you were 'a wise...blahblah' and now you say u are 'the wise...blahblah'. I'm confused, are u the only gigantic talking fruit or there are more?\").then(waterMelonHatesYou), maybe(\"Great! What can you teach us?\").then(OlofmeisterSucks)));\n  eatWaterMelon = watermelon(says(\"Wot da...\")).then(action(\"eat watermelon\"));\n  toEatOrNotToEat = watermelon(says(\"You are right indeed, I am not God, just a wise watermelon\")).then(boy(says(\"Kek, I didn't know that fruits could talk.\"))).then(watermelon(asks(\"There are so many unknown things for the man and the man only, but known for fruits and other wise elements from earth.\", maybe(\"I don't really care about that, but I'm hungry, gonna eat u soz.\").then(eatWaterMelon), maybe(\"Omg, maybe we could learn something from you\").then(blowMind))));\n  talkToWaterMelon = watermelon(says(\"Greetings, foreigns\")).then(boy(says(\"Wot! It is talking\"))).then(priest(says(\"Oh gosh\"))).then(watermelon(asks(\"Of course I'm talking. I'm God itself\", maybe(\"No u not, God is not a ball.\").then(toEatOrNotToEat), maybe(\"Oh my... we found him :O\").then(priest(says(\"LETS PRAY TO THE LOOOOOOOORD!\"))))));\n\n  /*\n  \n    !?!??!?!?!?!??!?!¡START HERE!!!?!?!??!?!?!\n   */\n  return boy(asks(\"What is that? (test)\", maybe(\"Nutin, just keep on going\").then(boy(says(\"kk, lets go then\"))), maybe(\"Idk, maybe we should check\").then(talkToWaterMelon)));\n});\n\n\n/*****************\n ** WEBPACK FOOTER\n ** ./dialogues/watermelon.coffee\n ** module id = 96\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./dialogues/watermelon.coffee?");
+
+/***/ },
+/* 97 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("\"use strict\";\n\nvar _regeneratorRuntime = __webpack_require__(40)[\"default\"];\n\nvar _Promise = __webpack_require__(59)[\"default\"];\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\nexports.load = load;\n\nfunction load(path, files) {\n  var names, out, name, output, images;\n  return _regeneratorRuntime.async(function load$(context$1$0) {\n    while (1) switch (context$1$0.prev = context$1$0.next) {\n      case 0:\n        names = [];\n        out = [];\n\n        for (name in files) {\n          names.push(name);\n          out.push(loadImage(path + files[name]));\n        }\n\n        output = {};\n        context$1$0.next = 6;\n        return _regeneratorRuntime.awrap(_Promise.all(out));\n\n      case 6:\n        images = context$1$0.sent;\n\n        images.forEach(function (a, i) {\n          return output[names[i]] = a;\n        });\n\n        return context$1$0.abrupt(\"return\", output);\n\n      case 9:\n      case \"end\":\n        return context$1$0.stop();\n    }\n  }, null, this);\n}\n\nfunction loadImage(path) {\n  return new _Promise(function (res) {\n    var img = new Image();\n    img.onload = function () {\n      return res(img);\n    };\n    img.src = path;\n  });\n}\n\n/*****************\n ** WEBPACK FOOTER\n ** ./lib/Assets.js\n ** module id = 97\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./lib/Assets.js?");
+
+/***/ },
+/* 98 */
+/***/ function(module, exports) {
+
+	eval("/*! http://mths.be/array-from v0.2.0 by @mathias */\nif (!Array.from) {\n\t(function() {\n\t\t'use strict';\n\t\tvar defineProperty = (function() {\n\t\t\t// IE 8 only supports `Object.defineProperty` on DOM elements.\n\t\t\ttry {\n\t\t\t\tvar object = {};\n\t\t\t\tvar $defineProperty = Object.defineProperty;\n\t\t\t\tvar result = $defineProperty(object, object, object) && $defineProperty;\n\t\t\t} catch(error) {}\n\t\t\treturn result || function put(object, key, descriptor) {\n\t\t\t\tobject[key] = descriptor.value;\n\t\t\t};\n\t\t}());\n\t\tvar toStr = Object.prototype.toString;\n\t\tvar isCallable = function(fn) {\n\t\t\t// In a perfect world, the `typeof` check would be sufficient. However,\n\t\t\t// in Chrome 1–12, `typeof /x/ == 'object'`, and in IE 6–8\n\t\t\t// `typeof alert == 'object'` and similar for other host objects.\n\t\t\treturn typeof fn == 'function' || toStr.call(fn) == '[object Function]';\n\t\t};\n\t\tvar toInteger = function(value) {\n\t\t\tvar number = Number(value);\n\t\t\tif (isNaN(number)) {\n\t\t\t\treturn 0;\n\t\t\t}\n\t\t\tif (number == 0 || !isFinite(number)) {\n\t\t\t\treturn number;\n\t\t\t}\n\t\t\treturn (number > 0 ? 1 : -1) * Math.floor(Math.abs(number));\n\t\t};\n\t\tvar maxSafeInteger = Math.pow(2, 53) - 1;\n\t\tvar toLength = function(value) {\n\t\t\tvar len = toInteger(value);\n\t\t\treturn Math.min(Math.max(len, 0), maxSafeInteger);\n\t\t};\n\t\tvar from = function(arrayLike) {\n\t\t\tvar C = this;\n\t\t\tif (arrayLike == null) {\n\t\t\t\tthrow new TypeError('`Array.from` requires an array-like object, not `null` or `undefined`');\n\t\t\t}\n\t\t\tvar items = Object(arrayLike);\n\t\t\tvar mapping = arguments.length > 1;\n\n\t\t\tvar mapFn, T;\n\t\t\tif (arguments.length > 1) {\n\t\t\t\tmapFn = arguments[1];\n\t\t\t\tif (!isCallable(mapFn)) {\n\t\t\t\t\tthrow new TypeError('When provided, the second argument to `Array.from` must be a function');\n\t\t\t\t}\n\t\t\t\tif (arguments.length > 2) {\n\t\t\t\t\tT = arguments[2];\n\t\t\t\t}\n\t\t\t}\n\n\t\t\tvar len = toLength(items.length);\n\t\t\tvar A = isCallable(C) ? Object(new C(len)) : new Array(len);\n\t\t\tvar k = 0;\n\t\t\tvar kValue, mappedValue;\n\t\t\twhile (k < len) {\n\t\t\t\tkValue = items[k];\n\t\t\t\tif (mapFn) {\n\t\t\t\t\tmappedValue = typeof T == 'undefined' ? mapFn(kValue, k) : mapFn.call(T, kValue, k);\n\t\t\t\t} else {\n\t\t\t\t\tmappedValue = kValue;\n\t\t\t\t}\n\t\t\t\tdefineProperty(A, k, {\n\t\t\t\t\t'value': mappedValue,\n\t\t\t\t\t'configurable': true,\n\t\t\t\t\t'enumerable': true\n\t\t\t\t});\n\t\t\t\t++k;\n\t\t\t}\n\t\t\tA.length = len;\n\t\t\treturn A;\n\t\t};\n\t\tdefineProperty(Array, 'from', {\n\t\t\t'value': from,\n\t\t\t'configurable': true,\n\t\t\t'writable': true\n\t\t});\n\t}());\n}\n\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/array.from/array-from.js\n ** module id = 98\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/array.from/array-from.js?");
+
+/***/ },
+/* 99 */
+/***/ function(module, exports) {
+
+	eval("(function() {\n  'use strict';\n\n  if (self.fetch) {\n    return\n  }\n\n  function normalizeName(name) {\n    if (typeof name !== 'string') {\n      name = name.toString();\n    }\n    if (/[^a-z0-9\\-#$%&'*+.\\^_`|~]/i.test(name)) {\n      throw new TypeError('Invalid character in header field name')\n    }\n    return name.toLowerCase()\n  }\n\n  function normalizeValue(value) {\n    if (typeof value !== 'string') {\n      value = value.toString();\n    }\n    return value\n  }\n\n  function Headers(headers) {\n    this.map = {}\n\n    if (headers instanceof Headers) {\n      headers.forEach(function(value, name) {\n        this.append(name, value)\n      }, this)\n\n    } else if (headers) {\n      Object.getOwnPropertyNames(headers).forEach(function(name) {\n        this.append(name, headers[name])\n      }, this)\n    }\n  }\n\n  Headers.prototype.append = function(name, value) {\n    name = normalizeName(name)\n    value = normalizeValue(value)\n    var list = this.map[name]\n    if (!list) {\n      list = []\n      this.map[name] = list\n    }\n    list.push(value)\n  }\n\n  Headers.prototype['delete'] = function(name) {\n    delete this.map[normalizeName(name)]\n  }\n\n  Headers.prototype.get = function(name) {\n    var values = this.map[normalizeName(name)]\n    return values ? values[0] : null\n  }\n\n  Headers.prototype.getAll = function(name) {\n    return this.map[normalizeName(name)] || []\n  }\n\n  Headers.prototype.has = function(name) {\n    return this.map.hasOwnProperty(normalizeName(name))\n  }\n\n  Headers.prototype.set = function(name, value) {\n    this.map[normalizeName(name)] = [normalizeValue(value)]\n  }\n\n  Headers.prototype.forEach = function(callback, thisArg) {\n    Object.getOwnPropertyNames(this.map).forEach(function(name) {\n      this.map[name].forEach(function(value) {\n        callback.call(thisArg, value, name, this)\n      }, this)\n    }, this)\n  }\n\n  function consumed(body) {\n    if (body.bodyUsed) {\n      return Promise.reject(new TypeError('Already read'))\n    }\n    body.bodyUsed = true\n  }\n\n  function fileReaderReady(reader) {\n    return new Promise(function(resolve, reject) {\n      reader.onload = function() {\n        resolve(reader.result)\n      }\n      reader.onerror = function() {\n        reject(reader.error)\n      }\n    })\n  }\n\n  function readBlobAsArrayBuffer(blob) {\n    var reader = new FileReader()\n    reader.readAsArrayBuffer(blob)\n    return fileReaderReady(reader)\n  }\n\n  function readBlobAsText(blob) {\n    var reader = new FileReader()\n    reader.readAsText(blob)\n    return fileReaderReady(reader)\n  }\n\n  var support = {\n    blob: 'FileReader' in self && 'Blob' in self && (function() {\n      try {\n        new Blob();\n        return true\n      } catch(e) {\n        return false\n      }\n    })(),\n    formData: 'FormData' in self\n  }\n\n  function Body() {\n    this.bodyUsed = false\n\n\n    this._initBody = function(body) {\n      this._bodyInit = body\n      if (typeof body === 'string') {\n        this._bodyText = body\n      } else if (support.blob && Blob.prototype.isPrototypeOf(body)) {\n        this._bodyBlob = body\n      } else if (support.formData && FormData.prototype.isPrototypeOf(body)) {\n        this._bodyFormData = body\n      } else if (!body) {\n        this._bodyText = ''\n      } else {\n        throw new Error('unsupported BodyInit type')\n      }\n    }\n\n    if (support.blob) {\n      this.blob = function() {\n        var rejected = consumed(this)\n        if (rejected) {\n          return rejected\n        }\n\n        if (this._bodyBlob) {\n          return Promise.resolve(this._bodyBlob)\n        } else if (this._bodyFormData) {\n          throw new Error('could not read FormData body as blob')\n        } else {\n          return Promise.resolve(new Blob([this._bodyText]))\n        }\n      }\n\n      this.arrayBuffer = function() {\n        return this.blob().then(readBlobAsArrayBuffer)\n      }\n\n      this.text = function() {\n        var rejected = consumed(this)\n        if (rejected) {\n          return rejected\n        }\n\n        if (this._bodyBlob) {\n          return readBlobAsText(this._bodyBlob)\n        } else if (this._bodyFormData) {\n          throw new Error('could not read FormData body as text')\n        } else {\n          return Promise.resolve(this._bodyText)\n        }\n      }\n    } else {\n      this.text = function() {\n        var rejected = consumed(this)\n        return rejected ? rejected : Promise.resolve(this._bodyText)\n      }\n    }\n\n    if (support.formData) {\n      this.formData = function() {\n        return this.text().then(decode)\n      }\n    }\n\n    this.json = function() {\n      return this.text().then(JSON.parse)\n    }\n\n    return this\n  }\n\n  // HTTP methods whose capitalization should be normalized\n  var methods = ['DELETE', 'GET', 'HEAD', 'OPTIONS', 'POST', 'PUT']\n\n  function normalizeMethod(method) {\n    var upcased = method.toUpperCase()\n    return (methods.indexOf(upcased) > -1) ? upcased : method\n  }\n\n  function Request(url, options) {\n    options = options || {}\n    this.url = url\n\n    this.credentials = options.credentials || 'omit'\n    this.headers = new Headers(options.headers)\n    this.method = normalizeMethod(options.method || 'GET')\n    this.mode = options.mode || null\n    this.referrer = null\n\n    if ((this.method === 'GET' || this.method === 'HEAD') && options.body) {\n      throw new TypeError('Body not allowed for GET or HEAD requests')\n    }\n    this._initBody(options.body)\n  }\n\n  function decode(body) {\n    var form = new FormData()\n    body.trim().split('&').forEach(function(bytes) {\n      if (bytes) {\n        var split = bytes.split('=')\n        var name = split.shift().replace(/\\+/g, ' ')\n        var value = split.join('=').replace(/\\+/g, ' ')\n        form.append(decodeURIComponent(name), decodeURIComponent(value))\n      }\n    })\n    return form\n  }\n\n  function headers(xhr) {\n    var head = new Headers()\n    var pairs = xhr.getAllResponseHeaders().trim().split('\\n')\n    pairs.forEach(function(header) {\n      var split = header.trim().split(':')\n      var key = split.shift().trim()\n      var value = split.join(':').trim()\n      head.append(key, value)\n    })\n    return head\n  }\n\n  Body.call(Request.prototype)\n\n  function Response(bodyInit, options) {\n    if (!options) {\n      options = {}\n    }\n\n    this._initBody(bodyInit)\n    this.type = 'default'\n    this.url = null\n    this.status = options.status\n    this.ok = this.status >= 200 && this.status < 300\n    this.statusText = options.statusText\n    this.headers = options.headers instanceof Headers ? options.headers : new Headers(options.headers)\n    this.url = options.url || ''\n  }\n\n  Body.call(Response.prototype)\n\n  self.Headers = Headers;\n  self.Request = Request;\n  self.Response = Response;\n\n  self.fetch = function(input, init) {\n    // TODO: Request constructor should accept input, init\n    var request\n    if (Request.prototype.isPrototypeOf(input) && !init) {\n      request = input\n    } else {\n      request = new Request(input, init)\n    }\n\n    return new Promise(function(resolve, reject) {\n      var xhr = new XMLHttpRequest()\n\n      function responseURL() {\n        if ('responseURL' in xhr) {\n          return xhr.responseURL\n        }\n\n        // Avoid security warnings on getResponseHeader when not allowed by CORS\n        if (/^X-Request-URL:/m.test(xhr.getAllResponseHeaders())) {\n          return xhr.getResponseHeader('X-Request-URL')\n        }\n\n        return;\n      }\n\n      xhr.onload = function() {\n        var status = (xhr.status === 1223) ? 204 : xhr.status\n        if (status < 100 || status > 599) {\n          reject(new TypeError('Network request failed'))\n          return\n        }\n        var options = {\n          status: status,\n          statusText: xhr.statusText,\n          headers: headers(xhr),\n          url: responseURL()\n        }\n        var body = 'response' in xhr ? xhr.response : xhr.responseText;\n        resolve(new Response(body, options))\n      }\n\n      xhr.onerror = function() {\n        reject(new TypeError('Network request failed'))\n      }\n\n      xhr.open(request.method, request.url, true)\n\n      if (request.credentials === 'include') {\n        xhr.withCredentials = true\n      }\n\n      if ('responseType' in xhr && support.blob) {\n        xhr.responseType = 'blob'\n      }\n\n      request.headers.forEach(function(value, name) {\n        xhr.setRequestHeader(name, value)\n      })\n\n      xhr.send(typeof request._bodyInit === 'undefined' ? null : request._bodyInit)\n    })\n  }\n  self.fetch.polyfill = true\n})();\n\n\n/*****************\n ** WEBPACK FOOTER\n ** ./~/whatwg-fetch/fetch.js\n ** module id = 99\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./~/whatwg-fetch/fetch.js?");
+
+/***/ },
+/* 100 */
+/***/ function(module, exports, __webpack_require__) {
+
+	eval("var Dialogue, Person, action, asks, awnsers, boy, but, c, gameover, infinit, maybe, priest, ref, says, stealFish, stories;\n\nref = __webpack_require__(92), says = ref.says, asks = ref.asks, maybe = ref.maybe, but = ref.but, awnsers = ref.awnsers, Dialogue = ref.Dialogue, action = ref.action, Person = ref.Person;\n\nboy = Person(0);\n\npriest = Person(1);\n\nc = priest(says(\"Aww.. Too bad, I know the best place to find fish tho!\")).then(boy(says(\"Are you serious?\"))).then(priest(says(\"Yes!\"))).then(boy(says(\"Can I change my mind? ;)\")));\n\nstealFish = priest(says(\"FISH! Omg i luv fish! Can i have some!?!?\"));\n\ngameover = action('game over');\n\ninfinit = boy(says(\"It goes on and on\")).then(priest(says(\"on and on\")));\n\nstories = {\n  another: boy(says(\"Hello there!\")).then(priest(says(\"Why welcome son!\"))).then(boy(says(\"I've sined father!\"))).then(priest(asks(\"You have? Oh, that's too bad! What's the matter?\", maybe(\"I've eaten 12 bananas\").then(priest(asks(\"That's aright, nobody like bananas any way!\", maybe(\"Ah... okay... then I go back home\").then(gameover), maybe(\"Ikr? Bananas are awful. I stole fish, no kidding now.\").then(stealFish)))), maybe(\"I've stolen fish\").then(stealFish)))).then(boy(says(\"You want to steal fish?\"))).then(priest(asks(\"YES! Will you teach me\", maybe(\"Well...\").then(priest(asks(\"Come on, please!\", maybe(\"Aright then...\").then(priest(says(\"WUHU! ADVENTURE LIES AHEAD!\"))), maybe(\"What the heck, come along!\").then(priest(says(\"WUHU! ADVENTURE LIES AHEAD!\")))))), maybe(\"No way! Not gonna happen!\").then(c)))).then(priest(says(\"Follow me! I know the greatest place to get the freashest fish!\"))).then(priest(says(\"Follow me! I know the greatest place to get the freashest fish!\")))\n};\n\nmodule.exports = stories;\n\n\n/*****************\n ** WEBPACK FOOTER\n ** ./dialogues/stories.coffee\n ** module id = 100\n ** module chunks = 0\n **/\n//# sourceURL=webpack:///./dialogues/stories.coffee?");
 
 /***/ }
 /******/ ]);
